@@ -1,0 +1,20 @@
+{
+  "runtime": "Net100",
+  "documentGenerator": {
+    "fromDocument": {
+      "url": "oilcasex.v1.mcp.json"
+    }
+  },
+  "codeGenerators": {
+    "openApiToCSharpClient": {
+      "className": "OilCaseXApiClientGenerated",
+      "namespace": "OilCaseX.McpServer.ApiClient.Generated",
+      "generateClientInterfaces": true,
+      "generateDtoTypes": true,
+      "injectHttpClient": true,
+      "disposeHttpClient": false,
+      "useBaseUrl": false,
+      "output": "../../generated/OilCaseXApiClient.g.cs"
+    }
+  }
+}

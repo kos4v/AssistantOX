@@ -1,0 +1,47 @@
+name: OilCaseX MCP OpenAPI contract
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/OilCaseX.McpServer
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate curated OpenAPI snapshot
+        shell: pwsh
+        run: ./scripts/validate-openapi.ps1
+
+      - name: Install pinned NSwag
+        shell: pwsh
+        run: dotnet tool install --tool-path "$env:RUNNER_TEMP/nswag" NSwag.ConsoleCore --version 14.7.1
+
+      - name: Generate typed client
+        shell: pwsh
+        run: |
+          & "$env:RUNNER_TEMP/nswag/nswag" run ./contracts/openapi/oilcasex.v1.mcp.nswag
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path ./generated/OilCaseXApiClient.g.cs)) { throw "Generated client is missing" }
+
+      - name: Compile generated client
+        shell: pwsh
+        run: dotnet build ./tests/OilCaseX.McpServer.ContractCompile/OilCaseX.McpServer.ContractCompile.csproj
+
+      - name: Check compatibility with previous commit
+        shell: pwsh
+        run: |
+          git cat-file -e HEAD^:src/OilCaseX.McpServer/contracts/openapi/oilcasex.v1.mcp.json 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "No previous OpenAPI snapshot is available; compatibility check is skipped."
+            exit 0
+          }
+          $previous = Join-Path $env:RUNNER_TEMP "oilcasex.previous.json"
+          git show "HEAD^:src/OilCaseX.McpServer/contracts/openapi/oilcasex.v1.mcp.json" > $previous
+          ./scripts/check-openapi-compatibility.ps1 `
+            -PreviousPath $previous `
+            -CurrentPath ./contracts/openapi/oilcasex.v1.mcp.json

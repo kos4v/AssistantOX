@@ -1,0 +1,57 @@
+{
+    "source":  {
+                   "url":  "https://x.stg.oilcase.ru/swagger/v1/swagger.json",
+                   "capturedAt":  "2026-08-07T06:58:36Z",
+                   "sha256":  "402f7d8d514a7786d88ecced20e9b27fd2a1f893bb177c90a844ed7f1017ab26",
+                   "rawSnapshot":  "oilcasex.v1.raw.json"
+               },
+    "curated":  {
+                    "snapshot":  "oilcasex.v1.mcp.json",
+                    "sha256":  "cb17597205167a2ce8fa3bf69b98f34b7fd2c41a76f251c1f0426aafcefe6ef0",
+                    "operationCount":  6
+                },
+    "mappings":  [
+                     {
+                         "toolName":  "list_wellpads",
+                         "status":  "enabled-read",
+                         "method":  "GET",
+                         "path":  "/Api/V1/Purchased/Wellpad",
+                         "operationId":  "listWellpads"
+                     },
+                     {
+                         "toolName":  "get_wellpad",
+                         "status":  "enabled-read",
+                         "method":  "GET",
+                         "path":  "/Api/V1/Purchased/Wellpad/{wellpadId}",
+                         "operationId":  "getWellpad"
+                     },
+                     {
+                         "toolName":  "list_boreholes",
+                         "status":  "enabled-read",
+                         "method":  "GET",
+                         "path":  "/Api/V1/Purchased/Borehole/All",
+                         "operationId":  "listBoreholes"
+                     },
+                     {
+                         "toolName":  "get_borehole",
+                         "status":  "enabled-read",
+                         "method":  "GET",
+                         "path":  "/Api/V1/Purchased/Borehole/BoreholeInfo/{boreholeId}",
+                         "operationId":  "getBorehole"
+                     },
+                     {
+                         "toolName":  "get_borehole_production",
+                         "status":  "enabled-read",
+                         "method":  "GET",
+                         "path":  "/Api/V1/Production/Info/Borehole/{boreholeId}",
+                         "operationId":  "getBoreholeProduction"
+                     },
+                     {
+                         "toolName":  "create_purchased_borehole",
+                         "status":  "blocked-until-preflight",
+                         "method":  "POST",
+                         "path":  "/Api/V1/Purchased/Borehole",
+                         "operationId":  "createPurchasedBorehole"
+                     }
+                 ]
+}
