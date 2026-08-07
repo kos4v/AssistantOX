@@ -2,9 +2,11 @@
 
 Отдельный MCP gateway над существующим OilCaseX REST API.
 
-Текущий статус: этап 0 завершён, этап 1 реализован как contract pipeline — raw и curated
-OpenAPI snapshots, operation mapping, typed-client generation и compatibility checks.
-Runtime-код MCP Server будет добавляться начиная с этапа 2 плана.
+Текущий статус: этапы 0–2 завершены. Этап 1 реализован как contract pipeline — raw и
+curated OpenAPI snapshots, operation mapping, typed-client generation и compatibility
+checks. Этап 2 добавляет запускаемый ASP.NET Core MCP gateway со Streamable HTTP,
+health/readiness, configuration validation, structured logging, базовым OpenTelemetry,
+ограничениями размера и диагностическим tool `mcp_server_ping`.
 
 ## Принципиальная граница
 
@@ -35,6 +37,35 @@ MCP Server не ссылается на Domain Services, `DbContext` или Post
 - [Environment configuration](../../docs/OilCaseX.McpServer/environment-configuration.md)
 - [OpenAPI contracts](contracts/openapi/README.md)
 - [Generated client](generated/README.md)
+- [План разработки](../../docs/OilCaseX.McpServer/OilCaseX.McpServer-development-plan.md)
+- [Self-hosted deployment](../../docs/OilCaseX.McpServer/deployment-self-hosted.md)
+
+## Локальный запуск
+
+```powershell
+dotnet run --project .\OilCaseX.McpServer.csproj --urls http://127.0.0.1:5089
+```
+
+Проверки:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:5089/health/live
+Invoke-RestMethod http://127.0.0.1:5089/health/ready
+```
+
+MCP Streamable HTTP endpoint: `http://127.0.0.1:5089/mcp`.
+Клиент после `initialize` получает диагностический tool `mcp_server_ping` через `tools/list`.
+
+Конфигурация задаётся через `appsettings.json` или переменные окружения с префиксом
+`McpServer__`. Секреты в текущем scaffold не требуются и в логах не выводятся.
+Для отправки трасс в OpenTelemetry Collector задайте `OpenTelemetry__OtlpEndpoint`;
+по умолчанию экспорт отключён.
+
+Сборка контейнера выполняется из корня `AI/AssistantOX`:
+
+```powershell
+docker build -f src/OilCaseX.McpServer/Dockerfile -t oilcasex-mcpserver .
+```
 
 ## Следующий этап
 

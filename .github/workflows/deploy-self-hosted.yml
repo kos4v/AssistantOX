@@ -1,0 +1,113 @@
+name: Deploy OilCaseX MCP to self-hosted
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - main
+
+concurrency:
+  group: oilcasex-mcp-self-hosted
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to W10534
+    runs-on: [self-hosted, W10534]
+    environment: staging-self-hosted
+    env:
+      IMAGE_NAME: oilcasex-mcpserver
+      IMAGE_TAG: ${{ github.sha }}
+      CONTAINER_NAME: oilcasex-mcpserver
+      HOST_PORT: 5089
+      OILCASEX_BASE_URL: ${{ vars.OILCASEX_BASE_URL || 'https://x.stg.oilcase.ru' }}
+      OILCASEX_HEALTH_PATH: ${{ vars.OILCASEX_HEALTH_PATH || '/swagger/v1/swagger.json' }}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify runner prerequisites
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
+            throw 'Docker CLI is not installed on self-hosted runner W10534.'
+          }
+          docker info | Out-Null
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Docker daemon is not available on self-hosted runner W10534.'
+          }
+
+      - name: Build image
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $image = "$env:IMAGE_NAME`:$env:IMAGE_TAG"
+          docker build --file src/OilCaseX.McpServer/Dockerfile --tag $image .
+          if ($LASTEXITCODE -ne 0) { throw 'Docker image build failed.' }
+
+      - name: Replace running container
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $image = "$env:IMAGE_NAME`:$env:IMAGE_TAG"
+          $existing = docker ps -a --filter "name=^/$env:CONTAINER_NAME$" --format '{{.ID}}'
+          if ($existing) {
+            docker rm --force $env:CONTAINER_NAME | Out-Null
+          }
+
+          $runArgs = @(
+            'run', '--detach', '--name', $env:CONTAINER_NAME,
+            '--restart', 'unless-stopped',
+            '--publish', "0.0.0.0:$env:HOST_PORT`:8080",
+            '--env', 'ASPNETCORE_ENVIRONMENT=Production',
+            '--env', "McpServer__OilCaseXBaseUrl=$env:OILCASEX_BASE_URL",
+            '--env', "McpServer__OilCaseXHealthPath=$env:OILCASEX_HEALTH_PATH",
+            '--env', 'McpServer__McpPath=/mcp'
+          )
+
+          if (-not [string]::IsNullOrWhiteSpace($env:OTEL_EXPORTER_OTLP_ENDPOINT)) {
+            $runArgs += @('--env', "OpenTelemetry__OtlpEndpoint=$env:OTEL_EXPORTER_OTLP_ENDPOINT")
+          }
+
+          $runArgs += $image
+          docker @runArgs | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'Container start failed.' }
+
+      - name: Smoke-check live and readiness
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $liveUri = "http://127.0.0.1:$env:HOST_PORT/health/live"
+          $readyUri = "http://127.0.0.1:$env:HOST_PORT/health/ready"
+          $deadline = (Get-Date).AddMinutes(2)
+          $live = $null
+
+          do {
+            try {
+              $live = Invoke-RestMethod -Uri $liveUri -TimeoutSec 5
+              if ($live.status -eq 'Healthy') { break }
+            } catch {
+              # The container may still be warming up.
+            }
+            Start-Sleep -Seconds 3
+          } while ((Get-Date) -lt $deadline)
+
+          if ($null -eq $live -or $live.status -ne 'Healthy') {
+            docker logs --tail 100 $env:CONTAINER_NAME
+            throw 'MCP live health check failed.'
+          }
+
+          $ready = Invoke-RestMethod -Uri $readyUri -TimeoutSec 15
+          if ($ready.status -ne 'Healthy') {
+            docker logs --tail 100 $env:CONTAINER_NAME
+            throw 'MCP readiness check failed.'
+          }
+
+          Write-Host "OilCaseX MCP deployment is healthy on port $env:HOST_PORT."
