@@ -20,12 +20,12 @@
 
 Артефакты этапа 1:
 
-- `contracts/openapi/oilcasex.v1.raw.json` — исходный snapshot;
-- `contracts/openapi/oilcasex.v1.mcp.json` — 6 MVP operations с локальными operation IDs,
+- `../../src/OilCaseX.McpServer/contracts/openapi/oilcasex.v1.raw.json` — исходный snapshot;
+- `../../src/OilCaseX.McpServer/contracts/openapi/oilcasex.v1.mcp.json` — 6 MVP operations с локальными operation IDs,
   Bearer security, `servers`, описаниями и стандартными error responses;
-- `contracts/openapi/oilcasex.v1.mcp.manifest.json` — hashes и mapping tools;
-- `generated/OilCaseXApiClient.g.cs` — результат NSwag generation;
-- `contracts/openapi/oilcasex.v1.mcp.nswag` — воспроизводимая конфигурация генератора.
+- `../../src/OilCaseX.McpServer/contracts/openapi/oilcasex.v1.mcp.manifest.json` — hashes и mapping tools;
+- `../../src/OilCaseX.McpServer/generated/OilCaseXApiClient.g.cs` — результат NSwag generation;
+- `../../src/OilCaseX.McpServer/contracts/openapi/oilcasex.v1.mcp.nswag` — воспроизводимая конфигурация генератора.
 
 Curated snapshot SHA-256: `cb17597205167a2ce8fa3bf69b98f34b7fd2c41a76f251c1f0426aafcefe6ef0`.
 Snapshot детерминирован: повторное обновление без изменения upstream возвращает тот же hash.

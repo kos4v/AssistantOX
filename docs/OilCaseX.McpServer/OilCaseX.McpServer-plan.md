@@ -566,13 +566,13 @@ Secrets не хранятся в `appsettings.json` и репозитории.
 
 Артефакты:
 
-- [ADR-0001: REST API boundary](docs/adr/ADR-0001-rest-api-boundary.md);
-- [ADR-0002: MCP protocol, SDK и transport](docs/adr/ADR-0002-mcp-transport-sdk.md);
-- [ADR-0003: delegated auth, confirmation и audit](docs/adr/ADR-0003-auth-confirmation-audit.md);
-- [Trust boundaries](docs/trust-boundaries.md);
-- [OpenAPI baseline](docs/openapi-baseline.md);
-- [MVP tool catalog](docs/tool-catalog-v0.md);
-- [Environment configuration](docs/environment-configuration.md).
+- [ADR-0001: REST API boundary](adr/ADR-0001-rest-api-boundary.md);
+- [ADR-0002: MCP protocol, SDK и transport](adr/ADR-0002-mcp-transport-sdk.md);
+- [ADR-0003: delegated auth, confirmation и audit](adr/ADR-0003-auth-confirmation-audit.md);
+- [Trust boundaries](trust-boundaries.md);
+- [OpenAPI baseline](openapi-baseline.md);
+- [MVP tool catalog](tool-catalog-v0.md);
+- [Environment configuration](environment-configuration.md).
 
 ### Задачи
 
@@ -593,9 +593,9 @@ Secrets не хранятся в `appsettings.json` и репозитории.
 Проверка DoD:
 
 - прямой доступ к Domain Services/DbContext/PostgreSQL запрещён ADR-0001;
-- trust boundary описана в `docs/trust-boundaries.md`;
+- trust boundary описана в `trust-boundaries.md`;
 - owner, URL, OpenAPI `3.0.4`, document version `v1` и SHA-256 зафиксированы в
-  `docs/openapi-baseline.md`;
+  `openapi-baseline.md`;
 - обнаружены и явно записаны текущие contract gaps: нет `operationId`, `servers`,
   security scheme и preflight endpoint.
 
@@ -603,12 +603,16 @@ Secrets не хранятся в `appsettings.json` и репозитории.
 
 Статус: **реализован 2026-08-07 через локальный curated contract pipeline**.
 
-Артефакты: `contracts/openapi/oilcasex.v1.raw.json`, `contracts/openapi/oilcasex.v1.mcp.json`,
-`contracts/openapi/oilcasex.v1.mcp.manifest.json`, `contracts/openapi/oilcasex.v1.mcp.nswag`,
-`generated/OilCaseXApiClient.g.cs`, `scripts/update-openapi-snapshot.ps1`,
-`scripts/validate-openapi.ps1`, `scripts/check-openapi-compatibility.ps1` и
+Артефакты: `../../src/OilCaseX.McpServer/contracts/openapi/oilcasex.v1.raw.json`,
+`../../src/OilCaseX.McpServer/contracts/openapi/oilcasex.v1.mcp.json`,
+`../../src/OilCaseX.McpServer/contracts/openapi/oilcasex.v1.mcp.manifest.json`,
+`../../src/OilCaseX.McpServer/contracts/openapi/oilcasex.v1.mcp.nswag`,
+`../../src/OilCaseX.McpServer/generated/OilCaseXApiClient.g.cs`,
+`../../src/OilCaseX.McpServer/scripts/update-openapi-snapshot.ps1`,
+`../../src/OilCaseX.McpServer/scripts/validate-openapi.ps1`,
+`../../src/OilCaseX.McpServer/scripts/check-openapi-compatibility.ps1` и
 `.github/workflows/openapi-contract.yml`, а также compile-smoke проект
-`tests/OilCaseX.McpServer.ContractCompile`.
+`../../src/OilCaseX.McpServer/tests/OilCaseX.McpServer.ContractCompile`.
 
 Внешний staging Swagger не изменяется из MCP repository. Поэтому operation IDs, Bearer
 security, `servers`, summaries/descriptions и standard error responses добавляются в
@@ -633,7 +637,8 @@ versioned curated overlay. Raw snapshot остаётся неизменённы�
 Проверка DoD:
 
 - curated snapshot содержит 6 operation IDs и mapping в manifest;
-- NSwag 14.7.1 успешно генерирует `generated/OilCaseXApiClient.g.cs`;
+- NSwag 14.7.1 успешно генерирует
+  `../../src/OilCaseX.McpServer/generated/OilCaseXApiClient.g.cs`;
 - validation проверяет `operationId`, summary, description, responses, Bearer и `servers`;
 - compatibility script и CI workflow обнаруживают удаление route/operation, смену
   operationId и удаление обязательного параметра;

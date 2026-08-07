@@ -26,13 +26,13 @@ MCP Server не ссылается на Domain Services, `DbContext` или Post
 
 ## Документы этапа 0
 
-- [ADR-0001: REST API boundary](docs/adr/ADR-0001-rest-api-boundary.md)
-- [ADR-0002: MCP protocol, SDK и transport](docs/adr/ADR-0002-mcp-transport-sdk.md)
-- [ADR-0003: delegated auth, confirmation и audit](docs/adr/ADR-0003-auth-confirmation-audit.md)
-- [Trust boundaries](docs/trust-boundaries.md)
-- [OpenAPI baseline](docs/openapi-baseline.md)
-- [MVP tool catalog](docs/tool-catalog-v0.md)
-- [Environment configuration](docs/environment-configuration.md)
+- [ADR-0001: REST API boundary](../../docs/OilCaseX.McpServer/adr/ADR-0001-rest-api-boundary.md)
+- [ADR-0002: MCP protocol, SDK и transport](../../docs/OilCaseX.McpServer/adr/ADR-0002-mcp-transport-sdk.md)
+- [ADR-0003: delegated auth, confirmation и audit](../../docs/OilCaseX.McpServer/adr/ADR-0003-auth-confirmation-audit.md)
+- [Trust boundaries](../../docs/OilCaseX.McpServer/trust-boundaries.md)
+- [OpenAPI baseline](../../docs/OilCaseX.McpServer/openapi-baseline.md)
+- [MVP tool catalog](../../docs/OilCaseX.McpServer/tool-catalog-v0.md)
+- [Environment configuration](../../docs/OilCaseX.McpServer/environment-configuration.md)
 - [OpenAPI contracts](contracts/openapi/README.md)
 - [Generated client](generated/README.md)
 

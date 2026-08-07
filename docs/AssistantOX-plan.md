@@ -164,7 +164,7 @@ MCP tool
 ## 6. Предлагаемая структура репозитория
 
 ```text
-AI/oilcase_agent/
+AI/AssistantOX/
   README.md
   PLAN.md
   OilCaseX.Agent.sln
