@@ -6,6 +6,9 @@ on:
     branches:
       - master
       - main
+    paths:
+      - 'src/OilCaseX.McpServer/**'
+      - '.github/workflows/deploy-self-hosted.yml'
 
 concurrency:
   group: oilcasex-mcp-self-hosted
@@ -39,9 +42,11 @@ jobs:
           if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
             throw 'Docker CLI is not installed on self-hosted runner W10534.'
           }
-          docker info | Out-Null
+          Write-Host "Docker executable: $((Get-Command docker).Source)"
+          docker --version
+          docker info
           if ($LASTEXITCODE -ne 0) {
-            throw 'Docker daemon is not available on self-hosted runner W10534.'
+            throw 'Docker daemon is not available on self-hosted runner W10534. Start Docker Desktop/Engine and grant access to the GitHub Actions runner service account.'
           }
 
       - name: Build image

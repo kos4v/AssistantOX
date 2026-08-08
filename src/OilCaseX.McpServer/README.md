@@ -2,7 +2,7 @@
 
 Отдельный MCP gateway над существующим OilCaseX REST API.
 
-Текущий статус: этап 6 реализован локально для сценария создания скважины. Этап 1 реализован как contract pipeline — raw и
+Текущий статус: MVP готов к pilot-развёртыванию. Этапы 1–7 реализованы локально; этап 1 реализован как contract pipeline — raw и
 curated OpenAPI snapshots, operation mapping, typed-client generation и compatibility
 checks. Этапы 2–3 добавляют запускаемый ASP.NET Core MCP gateway со Streamable HTTP,
 health/readiness, configuration validation, structured logging, OpenTelemetry,

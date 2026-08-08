@@ -2,7 +2,17 @@ name: OilCaseX MCP OpenAPI contract
 
 on:
   pull_request:
+    paths:
+      - 'src/OilCaseX.McpServer/**'
+      - 'src/OilCaseX.McpServer.ContractCompile/**'
+      - 'src/OilCaseX.McpServer.Tests/**'
+      - '.github/workflows/openapi-contract.yml'
   push:
+    paths:
+      - 'src/OilCaseX.McpServer/**'
+      - 'src/OilCaseX.McpServer.ContractCompile/**'
+      - 'src/OilCaseX.McpServer.Tests/**'
+      - '.github/workflows/openapi-contract.yml'
 
 jobs:
   validate:
@@ -30,7 +40,7 @@ jobs:
 
       - name: Compile generated client
         shell: pwsh
-        run: dotnet build ./tests/OilCaseX.McpServer.ContractCompile/OilCaseX.McpServer.ContractCompile.csproj
+        run: dotnet build ../OilCaseX.McpServer.ContractCompile/OilCaseX.McpServer.ContractCompile.csproj
 
       - name: Build MCP server
         shell: pwsh
@@ -38,7 +48,7 @@ jobs:
 
       - name: Run MCP unit, integration and contract tests
         shell: pwsh
-        run: dotnet test ./tests/OilCaseX.McpServer.Tests/OilCaseX.McpServer.Tests.csproj --configuration Release
+        run: dotnet test ../OilCaseX.McpServer.Tests/OilCaseX.McpServer.Tests.csproj --configuration Release
 
       - name: Check compatibility with previous commit
         shell: pwsh
