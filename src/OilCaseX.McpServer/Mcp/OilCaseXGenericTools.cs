@@ -17,7 +17,7 @@ namespace OilCaseX.McpServer.Mcp;
 /// </summary>
 public sealed class OilCaseXGenericTools : IEnumerable<McpServerTool>
 {
-    private static readonly JsonSerializerOptions StrictJsonOptions = new(JsonSerializerDefaults.Web)
+    internal static readonly JsonSerializerOptions StrictJsonOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNameCaseInsensitive = true,
         UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow
@@ -299,7 +299,7 @@ internal sealed class GenericApiToolTarget(ApiToolDescriptor descriptor)
             object? converted;
             try
             {
-                converted = value.Deserialize(parameter.ParameterType, StrictJsonOptions);
+                converted = value.Deserialize(parameter.ParameterType, OilCaseXGenericTools.StrictJsonOptions);
             }
             catch (JsonException)
             {
