@@ -30,6 +30,14 @@ public sealed class McpServerOptions
     [Range(30, 3_600)]
     public int ConfirmationTtlSeconds { get; set; } = 300;
 
+    [Range(1, 256)]
+    public int MaxConcurrentRequests { get; set; } = 32;
+
+    [Range(1, 10_000)]
+    public int RequestsPerMinute { get; set; } = 120;
+
+    public string[] WriteRoles { get; set; } = ["OilCaseX.Writer", "writer"];
+
     public Uri GetOilCaseXHealthUri()
     {
         var baseUri = new Uri(OilCaseXBaseUrl, UriKind.Absolute);

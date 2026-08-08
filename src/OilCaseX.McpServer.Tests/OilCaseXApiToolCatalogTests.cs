@@ -15,5 +15,10 @@ public sealed class OilCaseXApiToolCatalogTests
         Assert.NotNull(descriptors.Single(descriptor => descriptor.ToolName == "prepare_create_borehole").Confirmation);
         Assert.All(descriptors, descriptor => Assert.Equal(typeof(ApiClient.Generated.OilCaseXApiClientGenerated), descriptor.ClientType));
         Assert.Contains("wellpadId", descriptors.Single(descriptor => descriptor.ToolName == "get_wellpad").InputSchema);
+        Assert.DoesNotContain(descriptors, descriptor =>
+            descriptor.ToolName.Contains("delete", StringComparison.OrdinalIgnoreCase)
+            || descriptor.ToolName.Contains("reset", StringComparison.OrdinalIgnoreCase)
+            || descriptor.ToolName.Contains("restore", StringComparison.OrdinalIgnoreCase)
+            || descriptor.ToolName.Contains("admin", StringComparison.OrdinalIgnoreCase));
     }
 }

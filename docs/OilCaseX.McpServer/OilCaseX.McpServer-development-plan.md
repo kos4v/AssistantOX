@@ -284,8 +284,11 @@ reconciliation вынесены в этап 9.
 
 ## Этап 7. Security hardening
 
-**Статус: начат.** Первый шаг — строгая валидация входных JSON-аргументов и
-регрессионная проверка MCP allow-list.
+**Статус: завершён для текущего MCP MVP.** Добавлены role/tool policies,
+rate/concurrency limits, строгая проверка неизвестных аргументов, архитектурные и
+redaction tests, replay/cross-owner проверки, URL validation и threat-model review.
+Authentication middleware, выдающий claims для `McpServer:WriteRoles`, остаётся
+ответственностью deployment boundary.
 
 ### Задачи
 

@@ -1,10 +1,12 @@
 using System.Reflection;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Linq.Expressions;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using OilCaseX.McpServer.ApiClient;
 using OilCaseX.McpServer.ApiClient.Generated;
+using OilCaseX.McpServer.Diagnostics;
 using OilCaseX.McpServer.Mcp.Dtos;
 using OilCaseX.McpServer.Mcp.Projection;
 using BoreholePurchasePreview = OilCaseX.McpServer.Mcp.Dtos.BoreholePurchasePreview;
@@ -268,6 +270,10 @@ internal sealed class GenericApiToolTarget(ApiToolDescriptor descriptor)
         RequestContext<CallToolRequestParams> context,
         CancellationToken cancellationToken)
     {
+        using var activity = McpDiagnostics.ActivitySource.StartActivity($"mcp.tool.{descriptor.ToolName}", ActivityKind.Internal);
+        activity?.SetTag("mcp.tool.name", descriptor.ToolName);
+        activity?.SetTag("mcp.tool.operation_id", descriptor.OperationId);
+
         var arguments = context.Params.Arguments ?? new Dictionary<string, JsonElement>();
         var parameterNames = descriptor.Method.GetParameters()
             .Where(parameter => parameter.ParameterType != typeof(CancellationToken) && parameter.Name is not null)
@@ -318,6 +324,13 @@ internal sealed class GenericApiToolTarget(ApiToolDescriptor descriptor)
         try
         {
             using var scope = context.Server.Services!.CreateScope();
+            var authorization = scope.ServiceProvider.GetRequiredService<IToolAuthorizationPolicy>();
+            if (!authorization.CanInvoke(descriptor))
+            {
+                return ToolResponse<object?>.Failure(
+                    new ToolError("forbidden", "The caller is not allowed to invoke this tool.", false));
+            }
+
             var client = scope.ServiceProvider.GetRequiredService(descriptor.ClientType);
             var invocation = descriptor.Method.Invoke(client, values.ToArray());
             var result = await UnwrapTaskAsync(invocation);

@@ -72,6 +72,9 @@ API tools публикуются через descriptor-based wrapper над сг
 Конфигурация задаётся через `appsettings.json` или переменные окружения с префиксом
 `McpServer__`. Секреты в текущем scaffold не требуются и в логах не выводятся. Bearer JWT
 делегируется из входящего MCP HTTP request в OilCaseX API и не попадает в tool arguments.
+Write tools дополнительно требуют роль из `McpServer:WriteRoles`; роли должны быть
+установлены доверенным authentication middleware или reverse proxy. MCP endpoint
+ограничивает размер тела, rate и concurrency.
 Для отправки трасс в OpenTelemetry Collector задайте `OpenTelemetry__OtlpEndpoint`;
 по умолчанию экспорт отключён.
 

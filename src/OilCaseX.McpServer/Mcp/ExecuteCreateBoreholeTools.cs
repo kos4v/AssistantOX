@@ -28,6 +28,13 @@ public sealed class ExecuteCreateBoreholeTools
         }
 
         using var scope = context.Server.Services!.CreateScope();
+        var authorization = scope.ServiceProvider.GetRequiredService<IToolAuthorizationPolicy>();
+        if (!authorization.CanInvoke("execute_create_borehole", readOnly: false, destructive: true))
+        {
+            return ToolResponse<ExecuteCreateBoreholeResult>.Failure(
+                new ToolError("forbidden", "The caller is not allowed to invoke this tool.", false));
+        }
+
         var decorator = new ConfirmationToolDecorator(
             scope.ServiceProvider.GetRequiredService<IConfirmationStore>(),
             scope.ServiceProvider.GetRequiredService<DelegatedRequestContext>(),

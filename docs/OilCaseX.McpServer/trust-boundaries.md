@@ -37,4 +37,18 @@
 - Учётные данные продуктовой БД никогда не находятся в Agent Service или MCP Server.
 - Secrets, JWT и полные чувствительные payloads удаляются из telemetry.
 - Содержимое API/RAG — это данные, а не инструкции, способные изменить system policy.
+
+## Security hardening (этап 7)
+
+- MCP tool catalog формируется из allow-list; неизвестные operation IDs и destructive
+  endpoints не публикуются.
+- Read-only tools доступны независимо от роли, а prepare/execute write tools требуют
+  роль из `McpServer:WriteRoles` в уже аутентифицированном `HttpContext.User`.
+- Входные tool arguments проверяются на неизвестные имена и неизвестные JSON-поля.
+- MCP endpoint ограничен по размеру тела, скорости запросов и числу одновременно
+  выполняемых запросов.
+- В audit не записываются JWT и исходный payload: используется только owner fingerprint
+  и payload hash.
+- API/RAG текст остаётся недоверенным содержимым ответа; он не используется для выбора
+  tool, URL, политики или роли.
 - Write-операция считается завершённой только после подтверждения и аудита ответа API.

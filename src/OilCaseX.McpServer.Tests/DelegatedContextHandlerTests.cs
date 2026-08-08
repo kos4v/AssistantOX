@@ -1,6 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using OilCaseX.McpServer.ApiClient;
+using OilCaseX.McpServer.Mcp;
 
 namespace OilCaseX.McpServer.Tests;
 
@@ -28,6 +29,30 @@ public sealed class DelegatedContextHandlerTests
         Assert.Equal(
             "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
             capture.Request.Headers.GetValues("traceparent").Single());
+    }
+
+    [Fact]
+    public async Task IdempotencyKeyIsCopiedOnlyWhenOperationSetsIt()
+    {
+        var context = new IdempotencyKeyContext { CurrentKey = "mcp_test-key" };
+        var capture = new CaptureHandler();
+        var handler = new IdempotencyKeyHandler(context) { InnerHandler = capture };
+        using var client = new HttpClient(handler);
+
+        await client.PostAsync("https://oilcasex.test/Api/V1/Purchased/Borehole", new StringContent("{}"));
+
+        Assert.Equal("mcp_test-key", capture.Request!.Headers.GetValues("Idempotency-Key").Single());
+    }
+
+    [Fact]
+    public void OwnerFingerprintDoesNotContainDelegatedToken()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Headers.Authorization = "Bearer very-secret-jwt";
+        var owner = new DelegatedRequestContext(new HttpContextAccessor { HttpContext = context }).GetOwnerKey();
+
+        Assert.DoesNotContain("very-secret-jwt", owner, StringComparison.Ordinal);
+        Assert.StartsWith("jwt:", owner, StringComparison.Ordinal);
     }
 
     private sealed class CaptureHandler : HttpMessageHandler

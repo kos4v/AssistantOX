@@ -48,6 +48,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddSingleton<IConfirmationStore, InMemoryConfirmationStore>();
         builder.Services.AddSingleton<IAuditSink, LoggingAuditSink>();
+        builder.Services.AddSingleton<IToolAuthorizationPolicy, ToolAuthorizationPolicy>();
         builder.Services.AddScoped<IdempotencyKeyContext>();
         builder.Services.AddScoped<DelegatedRequestContext>();
 
@@ -131,6 +132,7 @@ public static class WebApplicationBuilderExtensions
 
         app.UseMiddleware<RequestLoggingMiddleware>();
         app.UseMiddleware<ResponseSizeLimitMiddleware>();
+        app.UseMiddleware<McpSecurityMiddleware>();
 
         app.MapHealthChecks("/health/live", new HealthCheckOptions
         {

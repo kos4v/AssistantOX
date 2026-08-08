@@ -1,5 +1,7 @@
 using OilCaseX.McpServer.Mcp.Dtos;
+using System.Diagnostics;
 using OilCaseX.McpServer.ApiClient;
+using OilCaseX.McpServer.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -42,6 +44,12 @@ public sealed class ConfirmationToolDecorator(
         Func<ConfirmationRecord, string, CancellationToken, Task<T>> execute,
         CancellationToken cancellationToken)
     {
+        using var activity = McpDiagnostics.ActivitySource.StartActivity(
+            $"mcp.tool.{expectedToolName}",
+            ActivityKind.Internal);
+        activity?.SetTag("mcp.tool.name", expectedToolName);
+        activity?.SetTag("mcp.confirmation.id", confirmationId);
+
         var ownerKey = requestContext.GetOwnerKey();
         if (!confirmationStore.TryGet(confirmationId, out var candidate) || candidate is null)
         {
