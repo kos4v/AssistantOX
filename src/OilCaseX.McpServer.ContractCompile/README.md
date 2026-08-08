@@ -4,7 +4,7 @@
 компилируется на целевой версии .NET.
 
 ```powershell
-dotnet build .\tests\OilCaseX.McpServer.ContractCompile\OilCaseX.McpServer.ContractCompile.csproj
+dotnet build .\src\OilCaseX.McpServer.ContractCompile\OilCaseX.McpServer.ContractCompile.csproj
 ```
 
 Runtime adapter, `HttpClientFactory`, delegated JWT и error mapping будут добавлены на

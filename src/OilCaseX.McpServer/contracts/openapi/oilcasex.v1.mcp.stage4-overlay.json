@@ -1,0 +1,31 @@
+{
+  "paths": {
+    "/Api/V1/Purchased/Borehole/Validate": {
+      "post": {
+        "operationId": "validatePurchasedBorehole",
+        "summary": "Validate and preview a purchased borehole",
+        "description": "Runs the OilCaseX domain preflight without persisting a borehole. Occupied positions return HTTP 409 with a machine-readable issue code.",
+        "x-mcp-tool-name": "validate_borehole_purchase",
+        "x-mcp-status": "enabled-read",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OilCaseX.Domain.Services.BoreholeResearch.Args.PurchasedBoreholeCreateArgs"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation result and optional creation preview"
+          },
+          "409": {
+            "description": "A borehole already occupies the requested position"
+          }
+        }
+      }
+    }
+  }
+}

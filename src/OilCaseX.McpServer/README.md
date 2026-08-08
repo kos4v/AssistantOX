@@ -2,11 +2,16 @@
 
 Отдельный MCP gateway над существующим OilCaseX REST API.
 
-Текущий статус: этапы 0–2 завершены. Этап 1 реализован как contract pipeline — raw и
+Текущий статус: этапы 0–5 завершены локально. Этап 1 реализован как contract pipeline — raw и
 curated OpenAPI snapshots, operation mapping, typed-client generation и compatibility
-checks. Этап 2 добавляет запускаемый ASP.NET Core MCP gateway со Streamable HTTP,
-health/readiness, configuration validation, structured logging, базовым OpenTelemetry,
-ограничениями размера и диагностическим tool `mcp_server_ping`.
+checks. Этапы 2–3 добавляют запускаемый ASP.NET Core MCP gateway со Streamable HTTP,
+health/readiness, configuration validation, structured logging, OpenTelemetry,
+типизированным OilCaseX API client и curated MCP tools. Read tools публикуются через
+универсальный descriptor-based wrapper над `OilCaseXApiClientGenerated`; составные tools
+`prepare_create_borehole` задаётся descriptor-ом с политикой confirmation: общий
+`ConfirmationToolDecorator` выполняет внутренний preflight через
+`ValidatePurchasedBoreholeAsync`, создаёт hash, confirmation и аудит. Отдельный MCP tool
+для validation не публикуется.
 
 ## Принципиальная граница
 
@@ -54,10 +59,19 @@ Invoke-RestMethod http://127.0.0.1:5089/health/ready
 ```
 
 MCP Streamable HTTP endpoint: `http://127.0.0.1:5089/mcp`.
-Клиент после `initialize` получает диагностический tool `mcp_server_ping` через `tools/list`.
+Клиент после `initialize` получает `mcp_server_ping`, `list_wellpads`, `get_wellpad`,
+`get_borehole` и `prepare_create_borehole` через `tools/list`.
+Read tools и prepare передают Bearer JWT из входящего MCP
+запроса в OilCaseX API, если он присутствует.
+
+API tools публикуются через descriptor-based wrapper над сгенерированным
+`OilCaseXApiClientGenerated`. Каталог задаёт только выражения разрешённых методов, а
+имена MCP, JSON Schema, безопасные флаги и projection результата формируются по
+сигнатуре клиента. Подробности находятся в [GeneratedTools](Mcp/GeneratedTools/README.md).
 
 Конфигурация задаётся через `appsettings.json` или переменные окружения с префиксом
-`McpServer__`. Секреты в текущем scaffold не требуются и в логах не выводятся.
+`McpServer__`. Секреты в текущем scaffold не требуются и в логах не выводятся. Bearer JWT
+делегируется из входящего MCP HTTP request в OilCaseX API и не попадает в tool arguments.
 Для отправки трасс в OpenTelemetry Collector задайте `OpenTelemetry__OtlpEndpoint`;
 по умолчанию экспорт отключён.
 
@@ -67,9 +81,14 @@ MCP Streamable HTTP endpoint: `http://127.0.0.1:5089/mcp`.
 docker build -f src/OilCaseX.McpServer/Dockerfile -t oilcasex-mcpserver .
 ```
 
+Тесты:
+
+```powershell
+dotnet test .\src\OilCaseX.McpServer.Tests\OilCaseX.McpServer.Tests.csproj --configuration Release
+```
+
 ## Следующий этап
 
-Следующий блокер — внешний OilCaseX API: официальный Swagger пока не содержит стабильные
-`operationId`, security scheme, `servers` и preflight/validate контракт. Локальный curated
-overlay позволяет продолжить разработку MCP, но write tools остаются заблокированными до
-появления API-level preflight и idempotency.
+Следующий блокер — этап 6: durable confirmation, повторный preflight, idempotency и
+execute. Текущий confirmation store in-memory и очищается при перезапуске MCP Server;
+`prepare_create_borehole` не создаёт продуктовые данные.

@@ -3929,6 +3929,56 @@
         }
       }
     },
+    "/Api/V1/Purchased/Borehole/Validate": {
+      "post": {
+        "tags": [
+          "Api/V1/Purchased"
+        ],
+        "summary": "Проверяет возможность добавления скважины без записи в БД.",
+        "description": "Ответ можно показать пользователю как предварительный просмотр перед вызовом POST /Borehole.\nResourceVersion и заголовок ETag являются снимком кустовой площадки; перед созданием\nскважины сервис повторяет доменную проверку.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OilCaseX.Domain.Services.BoreholeResearch.Args.PurchasedBoreholeCreateArgs"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OilCaseX.Domain.Services.BoreholeResearch.Args.PurchasedBoreholeCreateArgs"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OilCaseX.Domain.Services.BoreholeResearch.Args.PurchasedBoreholeCreateArgs"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OilCaseX.Domain.Services.FieldDevelopment.Results.BoreholePurchaseValidationResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OilCaseX.Domain.Services.FieldDevelopment.Results.BoreholePurchaseValidationResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Api/V1/Purchased/Borehole/Copy": {
       "post": {
         "tags": [
@@ -14669,6 +14719,100 @@
           }
         },
         "additionalProperties": false
+      },
+      "OilCaseX.Domain.Services.FieldDevelopment.Results.BoreholePurchasePreview": {
+        "required": [
+          "headX",
+          "headY",
+          "headZ",
+          "orderId",
+          "resourceVersion",
+          "wellpadId",
+          "wellpadSize"
+        ],
+        "type": "object",
+        "properties": {
+          "wellpadId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "wellpadSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "headX": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "headY": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "headZ": {
+            "type": "number",
+            "format": "double"
+          },
+          "resourceVersion": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Preview returned by the purchase preflight. It contains no persisted entity."
+      },
+      "OilCaseX.Domain.Services.FieldDevelopment.Results.BoreholePurchaseValidationIssue": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "field": {
+            "type": "string",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Machine-readable validation issue returned by the borehole purchase preflight."
+      },
+      "OilCaseX.Domain.Services.FieldDevelopment.Results.BoreholePurchaseValidationResult": {
+        "required": [
+          "issues",
+          "isValid"
+        ],
+        "type": "object",
+        "properties": {
+          "isValid": {
+            "type": "boolean"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OilCaseX.Domain.Services.FieldDevelopment.Results.BoreholePurchaseValidationIssue"
+            },
+            "nullable": true
+          },
+          "preview": {
+            "$ref": "#/components/schemas/OilCaseX.Domain.Services.FieldDevelopment.Results.BoreholePurchasePreview"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Result of validating a future purchased borehole without writing to the database."
       },
       "OilCaseX.Domain.Services.FieldDevelopment.Results.BoreholeResult": {
         "required": [

@@ -1,4 +1,5 @@
 using ModelContextProtocol.Server;
+using OilCaseX.McpServer.Mcp.Dtos;
 
 namespace OilCaseX.McpServer.Mcp;
 
@@ -21,9 +22,3 @@ public sealed class DiagnosticTools
             Utc: DateTimeOffset.UtcNow);
     }
 }
-
-public sealed record PingResult(
-    string Status,
-    string Message,
-    string Server,
-    DateTimeOffset Utc);

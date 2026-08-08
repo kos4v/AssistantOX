@@ -12,11 +12,11 @@
 | `get_borehole` | Read | `getBorehole` → `GET /Api/V1/Purchased/Borehole/BoreholeInfo/{boreholeId}` | роль пользователя + team scope |
 | `get_borehole_production` | Read | `getBoreholeProduction` → `GET /Api/V1/Production/Info/Borehole/{boreholeId}` | роль пользователя + team scope |
 
-## Safe write candidate — пока заблокирован контрактом API
+## Safe write candidate
 
 | MCP name | Тип | API reference | Условие включения |
 |---|---|---|---|
-| `prepare_create_borehole` | PrepareWrite | `createPurchasedBorehole` → `POST /Api/V1/Purchased/Borehole` требует отдельного preflight | API validate/preflight contract |
+| `prepare_create_borehole` | PrepareWrite | `validatePurchasedBorehole` → `POST /Api/V1/Purchased/Borehole/Validate` | API preflight доступен; confirmation TTL и audit включены |
 | `execute_create_borehole` | ExecuteWrite | `createPurchasedBorehole` → `POST /Api/V1/Purchased/Borehole` | confirmation, idempotency и API contract |
 
 Prepare не выполняет запись. Execute нельзя публиковать в production catalog до проверки

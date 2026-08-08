@@ -18,16 +18,27 @@ public sealed class McpServerOptions
     [Required]
     public string McpPath { get; set; } = "/mcp";
 
+    [Range(1, 120)]
+    public int OilCaseXTimeoutSeconds { get; set; } = 15;
+
     [Range(1_024, 16_777_216)]
     public long MaxRequestBodyBytes { get; set; } = DefaultMaxRequestBodyBytes;
 
     [Range(1_024, 33_554_432)]
     public long MaxResponseBodyBytes { get; set; } = DefaultMaxResponseBodyBytes;
 
+    [Range(30, 3_600)]
+    public int ConfirmationTtlSeconds { get; set; } = 300;
+
     public Uri GetOilCaseXHealthUri()
     {
         var baseUri = new Uri(OilCaseXBaseUrl, UriKind.Absolute);
         return new Uri(baseUri, OilCaseXHealthPath.TrimStart('/'));
+    }
+
+    public Uri GetOilCaseXBaseUri()
+    {
+        return new Uri($"{OilCaseXBaseUrl.TrimEnd('/')}/", UriKind.Absolute);
     }
 }
 

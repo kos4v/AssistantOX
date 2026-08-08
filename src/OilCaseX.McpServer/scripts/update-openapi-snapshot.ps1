@@ -121,6 +121,15 @@ $mappings = @(
         Summary = "Create a purchased borehole"
         Description = "Creates a borehole after API preflight, confirmation and idempotency checks."
         Status = "blocked-until-preflight"
+    },
+    [ordered]@{
+        ToolName = "validate_borehole_purchase"
+        Method = "post"
+        Path = "/Api/V1/Purchased/Borehole/Validate"
+        OperationId = "validatePurchasedBorehole"
+        Summary = "Validate and preview a purchased borehole"
+        Description = "Runs the OilCaseX domain preflight without persisting a borehole."
+        Status = "enabled-read"
     }
 )
 

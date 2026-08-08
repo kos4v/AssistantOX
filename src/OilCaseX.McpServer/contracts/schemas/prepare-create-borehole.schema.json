@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oilcasex.local/mcp/schemas/prepare-create-borehole.schema.json",
+  "title": "PrepareCreateBoreholeRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["wellpadId", "orderId"],
+  "properties": {
+    "wellpadId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "orderId": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Borehole position on the wellpad. OilCaseX applies the final wellpad-size constraint."
+    }
+  }
+}

@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="OilCaseX.McpServer.ContractCompile/OilCaseX.McpServer.ContractCompile.csproj" />
+  <Project Path="OilCaseX.McpServer.Tests/OilCaseX.McpServer.Tests.csproj" />
+  <Project Path="OilCaseX.McpServer/OilCaseX.McpServer.csproj" />
+</Solution>

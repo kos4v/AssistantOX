@@ -32,6 +32,14 @@ jobs:
         shell: pwsh
         run: dotnet build ./tests/OilCaseX.McpServer.ContractCompile/OilCaseX.McpServer.ContractCompile.csproj
 
+      - name: Build MCP server
+        shell: pwsh
+        run: dotnet build ./OilCaseX.McpServer.csproj --configuration Release
+
+      - name: Run MCP unit, integration and contract tests
+        shell: pwsh
+        run: dotnet test ./tests/OilCaseX.McpServer.Tests/OilCaseX.McpServer.Tests.csproj --configuration Release
+
       - name: Check compatibility with previous commit
         shell: pwsh
         run: |

@@ -55,7 +55,7 @@
 `../../src/OilCaseX.McpServer/scripts/validate-openapi.ps1`,
 `../../src/OilCaseX.McpServer/scripts/check-openapi-compatibility.ps1` и
 `.github/workflows/openapi-contract.yml`, а также compile-smoke проект
-`../../src/OilCaseX.McpServer/tests/OilCaseX.McpServer.ContractCompile`.
+`../../src/OilCaseX.McpServer.ContractCompile`.
 
 Внешний staging Swagger не изменяется из MCP repository. Поэтому operation IDs, Bearer
 security, `servers`, summaries/descriptions и standard error responses добавляются в
@@ -128,6 +128,23 @@ Docker build подготовлен, но локальная проверка т
 
 ## Этап 3. Реализовать API client и read tools
 
+Статус: **завершён 2026-08-07**.
+
+Реализовано:
+
+- typed NSwag client через `HttpClientFactory` с фиксированным OilCaseX `BaseAddress`;
+- delegated Bearer JWT и propagation `traceparent`/`X-Correlation-ID`;
+- response-size guard, стабильный error mapper и отсутствие upstream response body в tool errors;
+- GET-only retry/circuit breaker без повторения write-запросов;
+- read-only tools `list_wellpads`, `get_wellpad`, `get_borehole`;
+- curated output projections без `UserData`, cost и необязательных внутренних полей;
+- unit, MCP integration и OpenAPI contract tests в CI.
+
+Проверка DoD: `dotnet build` проходит без предупреждений; `dotnet test` — 12 тестов;
+MCP `tools/list` публикует три read tools; запрос без delegated JWT возвращает стабильный
+`unauthorized`, а не stack trace. Проверка с реальным staging JWT требует credentials
+из защищённого окружения и выполняется deployment/integration pipeline.
+
 ### Задачи
 
 - реализовать `HttpClientFactory` client;
@@ -151,6 +168,21 @@ Docker build подготовлен, но локальная проверка т
 
 ## Этап 4. Добавить API preflight создания скважины
 
+Статус: **завершён локально 2026-08-07**.
+
+Реализовано в `projects/OilCaseX`:
+
+- `POST /Api/V1/Purchased/Borehole/Validate` с preview, машинными кодами ошибок и ETag-снимком;
+- общая проверка wellpad, диапазона `orderId` и занятой позиции переиспользуется create-сценарием;
+- preflight использует `AsNoTracking` и не вызывает `SaveChanges`;
+- занятая позиция возвращает HTTP 409 с кодом `borehole_position_occupied`;
+- Swagger получает endpoint из атрибутов контроллера;
+- MCP получает endpoint в сгенерированном `OilCaseXApiClientGenerated`; он используется
+  только внутри confirmation prepare pipeline;
+- добавлен локальный OpenAPI stage-4 overlay до обновления staging Swagger.
+
+Полный API integration test с боевой БД и staging JWT ещё требует CI/deployment окружения.
+
 Этот этап меняет OilCaseX API, но не переносит domain logic в MCP.
 
 ### Задачи
@@ -173,17 +205,41 @@ Docker build подготовлен, но локальная проверка т
 
 ## Этап 5. Реализовать prepare
 
+Статус: **завершён локально 2026-08-07**.
+
+Реализовано в MCP Server:
+
+- `prepare_create_borehole` описан в `OilCaseXApiToolCatalog` как descriptor с
+  `ConfirmationPreparation`, отдельного MCP wrapper-класса для него нет;
+- tool вызывает только `ValidatePurchasedBoreholeAsync` и не вызывает create route;
+- canonical payload `{orderId,wellpadId}` и SHA-256 `payloadHash`;
+- in-memory confirmation store с TTL из `McpServer:ConfirmationTtlSeconds`;
+- confirmation связан с fingerprint делегированного пользователя, ресурсом wellpad,
+  tool name, payload hash и preview;
+- общий `ConfirmationToolDecorator` создаёт confirmation и audit events
+  `confirmation_prepare` для `prepared` и `validation_failed`;
+- публичный MCP tool `validate_borehole_purchase` не публикуется: preflight является
+  внутренней частью prepare.
+
+Store пока in-memory и предназначен для этапа 5; durable storage и одноразовое execute
+будут добавлены на этапе 6.
+
+Все текущие tools публикуются descriptor-based generic wrapper-ом. Descriptors проходят
+allow-list и non-destructive filters, после чего generic executor вызывает concrete
+`OilCaseXApiClientGenerated`, применяет output projection или, при заданной
+`ConfirmationPreparation`, передаёт результат в `ConfirmationToolDecorator`.
+
 ### Задачи
 
 - создать контракты `PrepareCreateBoreholeRequest/Result`;
 - реализовать JSON Schema;
-- реализовать `prepare_create_borehole`;
+- добавить descriptor `prepare_create_borehole` с confirmation policy;
 - вызвать API preflight;
 - канонизировать payload и вычислить hash;
 - сформировать preview;
 - создать confirmation record с TTL;
 - добавить audit событий prepare/validation failure;
-- протестировать чужую команду, неверный ID и занятый order.
+- протестировать создание confirmation, validation failure и binding confirmation к owner.
 
 ### Definition of Done
 
@@ -320,7 +376,8 @@ Docker build подготовлен, но локальная проверка т
 
 - отсутствуют references на Domain/Domain.Services;
 - отсутствует EF Core/DbContext registration;
-- handlers зависят от `IOilCaseXApiClient`, а не от `HttpClient` напрямую;
+- descriptors и decorator зависят от `OilCaseXApiClientGenerated`, а не от `HttpClient`
+  напрямую;
 - tool catalog не создаётся динамически из Swagger;
 - write handlers проходят confirmation pipeline.
 

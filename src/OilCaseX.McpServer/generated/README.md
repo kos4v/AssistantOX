@@ -9,5 +9,7 @@ NSwag 14.7.1. Файл не редактируется вручную.
 nswag run .\contracts\openapi\oilcasex.v1.mcp.nswag
 ```
 
-На этапе 2/3 сгенерированный интерфейс будет обёрнут в typed `HttpClientFactory` adapter
-с delegated JWT, timeout, trace context, response limits и error mapping.
+Сгенерированный интерфейс регистрируется через typed `HttpClientFactory` с delegated JWT,
+trace context, response limits и error mapping. В актуальном staging Swagger уже описан
+preflight `validatePurchasedBorehole`, поэтому отдельный hand-written HTTP-клиент для него
+не используется.

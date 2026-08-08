@@ -32,6 +32,7 @@ $expected = [ordered]@{
     "/Api/V1/Purchased/Borehole/BoreholeInfo/{boreholeId}|get" = "getBorehole"
     "/Api/V1/Production/Info/Borehole/{boreholeId}|get" = "getBoreholeProduction"
     "/Api/V1/Purchased/Borehole|post" = "createPurchasedBorehole"
+    "/Api/V1/Purchased/Borehole/Validate|post" = "validatePurchasedBorehole"
 }
 
 $operationIds = [System.Collections.Generic.HashSet[string]]::new()

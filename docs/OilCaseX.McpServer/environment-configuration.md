@@ -23,6 +23,10 @@ Audit__ConnectionString
 Telemetry__OtlpEndpoint
 ```
 
+В текущем MCP Server TTL задаётся через `McpServer__ConfirmationTtlSeconds` (по умолчанию
+300 секунд). На этапе 5 confirmation хранится только в памяти; для staging/production
+его необходимо заменить durable store на этапе 6.
+
 Secrets не хранятся в `appsettings.json`, ADR, Swagger snapshot или репозитории.
 
 ## Validation rules

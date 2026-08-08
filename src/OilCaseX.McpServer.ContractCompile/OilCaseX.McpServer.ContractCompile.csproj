@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="../../generated/OilCaseXApiClient.g.cs" Link="Generated/OilCaseXApiClient.g.cs" />
+    <Compile Include="../OilCaseX.McpServer/generated/OilCaseXApiClient.g.cs" Link="Generated/OilCaseXApiClient.g.cs" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 

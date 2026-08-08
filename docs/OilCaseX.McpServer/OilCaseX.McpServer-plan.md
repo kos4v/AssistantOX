@@ -121,6 +121,11 @@ Transport не содержит бизнес-логики и не вызывае
 
 Каталог создаётся в коде. LLM, Swagger или пользователь не могут динамически добавить tool.
 
+Текущая реализация использует `ApiToolDescriptor`: по сигнатуре
+`OilCaseXApiClientGenerated` выводятся базовые имя, schema и безопасные флаги. Для write
+prepare descriptor дополнительно содержит `ConfirmationPreparation`; это декларативная
+политика, а не отдельный handler на каждую API-ручку.
+
 ### 5.3. Tool Dispatcher
 
 Единый pipeline выполнения:
@@ -197,11 +202,11 @@ Write tools работают в два этапа.
 
 #### Prepare
 
-1. Проверить shape входных данных.
-2. Получить актуальные данные из OilCaseX API.
-3. Вызвать validate/preflight endpoint API.
-4. Сформировать нормализованный preview.
-5. Создать короткоживущий confirmation token.
+1. Generic executor десериализует аргументы по descriptor-у.
+2. Вызывает API validate/preflight endpoint, заданный descriptor-ом.
+3. `ConfirmationToolDecorator` проверяет domain result и формирует preview.
+4. Decorator создаёт canonical payload, hash и короткоживущий confirmation record.
+5. Decorator пишет audit event и возвращает `confirmationId` вместе с preview.
 
 #### Execute
 
@@ -471,13 +476,10 @@ OilCaseX.McpServer/
     ToolDescriptor.cs
     ToolRegistry.cs
     ToolDispatcher.cs
-    Wellpads/
-      ListWellpadsTool.cs
-      GetWellpadTool.cs
-    Boreholes/
-      PrepareCreateBoreholeTool.cs
-      ExecuteCreateBoreholeTool.cs
-      GetBoreholeTool.cs
+  Mcp/
+    OilCaseXGenericTools.cs
+    ConfirmationToolDecorator.cs
+    PrepareCreateBoreholeContracts.cs
   Policies/
     ToolPolicy.cs
     ToolAuthorizationService.cs
@@ -493,8 +495,8 @@ OilCaseX.McpServer/
   Idempotency/
     IdempotencyKeyFactory.cs
   ApiClient/
-    IOilCaseXApiClient.cs
-    OilCaseXApiClient.cs
+    Generated/
+      OilCaseXApiClientGenerated.cs
     OilCaseXApiClientOptions.cs
     Handlers/
       DelegatedAuthorizationHandler.cs

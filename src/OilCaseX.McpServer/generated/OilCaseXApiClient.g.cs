@@ -155,6 +155,27 @@ namespace OilCaseX.McpServer.ApiClient.Generated
         /// <exception cref="ApiException">A server side error occurred.</exception>
         System.Threading.Tasks.Task<int> CreatePurchasedBoreholeAsync(PurchasedBoreholeCreateArgs body, System.Threading.CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Validate and preview a purchased borehole
+        /// </summary>
+        /// <remarks>
+        /// Runs the OilCaseX domain preflight without persisting a borehole.
+        /// </remarks>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<BoreholePurchaseValidationResult> ValidatePurchasedBoreholeAsync(PurchasedBoreholeCreateArgs body);
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Validate and preview a purchased borehole
+        /// </summary>
+        /// <remarks>
+        /// Runs the OilCaseX domain preflight without persisting a borehole.
+        /// </remarks>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<BoreholePurchaseValidationResult> ValidatePurchasedBoreholeAsync(PurchasedBoreholeCreateArgs body, System.Threading.CancellationToken cancellationToken);
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.7.1.0 (NJsonSchema v11.6.1.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -858,6 +879,134 @@ namespace OilCaseX.McpServer.ApiClient.Generated
                         {
                             string responseText_ = ( response_.Content == null ) ? string.Empty : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
                             throw new ApiException("The delegated user is not allowed to access this resource.", status_, responseText_, headers_, null);
+                        }
+                        else
+                        if (status_ == 429)
+                        {
+                            string responseText_ = ( response_.Content == null ) ? string.Empty : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The upstream API rate limit was exceeded.", status_, responseText_, headers_, null);
+                        }
+                        else
+                        if (status_ == 502)
+                        {
+                            string responseText_ = ( response_.Content == null ) ? string.Empty : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The upstream OilCaseX API is unavailable.", status_, responseText_, headers_, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Validate and preview a purchased borehole
+        /// </summary>
+        /// <remarks>
+        /// Runs the OilCaseX domain preflight without persisting a borehole.
+        /// </remarks>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<BoreholePurchaseValidationResult> ValidatePurchasedBoreholeAsync(PurchasedBoreholeCreateArgs body)
+        {
+            return ValidatePurchasedBoreholeAsync(body, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Validate and preview a purchased borehole
+        /// </summary>
+        /// <remarks>
+        /// Runs the OilCaseX domain preflight without persisting a borehole.
+        /// </remarks>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<BoreholePurchaseValidationResult> ValidatePurchasedBoreholeAsync(PurchasedBoreholeCreateArgs body, System.Threading.CancellationToken cancellationToken)
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = Newtonsoft.Json.JsonConvert.SerializeObject(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.StringContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                
+                    // Operation Path: "Api/V1/Purchased/Borehole/Validate"
+                    urlBuilder_.Append("Api/V1/Purchased/Borehole/Validate");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<BoreholePurchaseValidationResult>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            string responseText_ = ( response_.Content == null ) ? string.Empty : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("Authentication is missing or invalid.", status_, responseText_, headers_, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            string responseText_ = ( response_.Content == null ) ? string.Empty : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The delegated user is not allowed to access this resource.", status_, responseText_, headers_, null);
+                        }
+                        else
+                        if (status_ == 409)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<BoreholePurchaseValidationResult>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new ApiException<BoreholePurchaseValidationResult>("Conflict", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 429)
@@ -8021,6 +8170,75 @@ namespace OilCaseX.McpServer.ApiClient.Generated
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
         public EnumChokeBeanDiameter ChokeBeanDiameter { get; set; }
+
+    }
+
+    /// <summary>
+    /// Preview returned by the purchase preflight. It contains no persisted entity.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.7.1.0 (NJsonSchema v11.6.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class BoreholePurchasePreview
+    {
+
+        [Newtonsoft.Json.JsonProperty("wellpadId", Required = Newtonsoft.Json.Required.Always)]
+        public int WellpadId { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("orderId", Required = Newtonsoft.Json.Required.Always)]
+        public int OrderId { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("wellpadSize", Required = Newtonsoft.Json.Required.Always)]
+        public int WellpadSize { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("headX", Required = Newtonsoft.Json.Required.Always)]
+        public int HeadX { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("headY", Required = Newtonsoft.Json.Required.Always)]
+        public int HeadY { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("headZ", Required = Newtonsoft.Json.Required.Always)]
+        public double HeadZ { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("resourceVersion", Required = Newtonsoft.Json.Required.AllowNull)]
+        public string ResourceVersion { get; set; }
+
+    }
+
+    /// <summary>
+    /// Machine-readable validation issue returned by the borehole purchase preflight.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.7.1.0 (NJsonSchema v11.6.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class BoreholePurchaseValidationIssue
+    {
+
+        [Newtonsoft.Json.JsonProperty("code", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Code { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("message", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Message { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("field", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Field { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("metadata", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.Collections.Generic.IDictionary<string, object> Metadata { get; set; }
+
+    }
+
+    /// <summary>
+    /// Result of validating a future purchased borehole without writing to the database.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.7.1.0 (NJsonSchema v11.6.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class BoreholePurchaseValidationResult
+    {
+
+        [Newtonsoft.Json.JsonProperty("isValid", Required = Newtonsoft.Json.Required.Always)]
+        public bool IsValid { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("issues", Required = Newtonsoft.Json.Required.AllowNull)]
+        public System.Collections.Generic.ICollection<BoreholePurchaseValidationIssue> Issues { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("preview", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public BoreholePurchasePreview Preview { get; set; }
 
     }
 
