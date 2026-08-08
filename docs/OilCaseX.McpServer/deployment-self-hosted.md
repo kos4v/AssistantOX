@@ -35,9 +35,11 @@ Configure these values in the `staging-self-hosted` GitHub Environment:
 - Variable `OILCASEX_BASE_URL` — trusted OilCaseX base URL;
 - Variable `OILCASEX_HEALTH_PATH` — readiness path, default `/swagger/v1/swagger.json`;
 - Secret `OTEL_EXPORTER_OTLP_ENDPOINT` — optional OTLP collector endpoint.
+- The trusted authentication boundary must populate role claims used by
+  `McpServer:WriteRoles` before exposing write tools.
 
 No JWT, database password or other product secret is stored in the repository. Delegated
-user authentication is added with the API client in the next implementation stage.
+JWT is copied per request to OilCaseX API; it is never written to logs or tool arguments.
 
 ## Rollback
 
