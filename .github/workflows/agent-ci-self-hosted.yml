@@ -1,0 +1,41 @@
+name: OilCaseX Agent Service CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/OilCaseX.Agent.**/**'
+      - 'tests/OilCaseX.Agent.**/**'
+      - 'docs/OilCaseX.AgentService/**'
+      - '.github/workflows/agent-ci-self-hosted.yml'
+  push:
+    branches: [main, master]
+    paths:
+      - 'src/OilCaseX.Agent.**/**'
+      - 'tests/OilCaseX.Agent.**/**'
+      - '.github/workflows/agent-ci-self-hosted.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Build and test Agent Service on W10534
+    runs-on: [self-hosted, W10534]
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore
+        run: dotnet restore AssistantOX.slnx
+
+      - name: Build
+        run: dotnet build AssistantOX.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test AssistantOX.slnx --configuration Release --no-build --no-restore
+
+      - name: Build Agent container
+        working-directory: .
+        run: docker build --file src/OilCaseX.Agent.Api/Dockerfile --tag oilcasex-agent-ci:${{ github.sha }} .

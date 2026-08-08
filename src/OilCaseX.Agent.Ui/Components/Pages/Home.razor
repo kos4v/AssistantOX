@@ -1,0 +1,132 @@
+@page "/"
+@rendermode InteractiveServer
+@inject AgentHubConnection Hub
+@inject AgentChatClientFallback Fallback
+
+<PageTitle>OilCaseX Agent</PageTitle>
+
+<section class="chat-card">
+    <div class="chat-heading">
+        <div>
+            <p class="eyebrow">OilCaseX assistant</p>
+            <h1>Создание скважин через чат</h1>
+        </div>
+        <span class="connection @(connected ? "online" : "offline")">@(connected ? "Подключено" : "Нет соединения")</span>
+    </div>
+
+    <div class="messages" aria-live="polite">
+        @if (messages.Count == 0)
+        {
+            <div class="empty-state">Опишите, какую скважину нужно создать. Перед записью появится preview и запрос подтверждения.</div>
+        }
+        @foreach (var item in messages)
+        {
+            <div class="message @item.Role"><span>@item.RoleLabel</span><p>@item.Text</p></div>
+        }
+    </div>
+
+    @if (pending is not null)
+    {
+        <div class="confirmation-card">
+            <div><strong>Операция подготовлена</strong><pre>@pending.Confirmation!.Preview.GetRawText()</pre></div>
+            <div class="actions">
+                <button class="primary" @onclick="ConfirmAsync" disabled="@busy">Подтвердить</button>
+                <button class="secondary" @onclick="RejectAsync" disabled="@busy">Отклонить</button>
+            </div>
+        </div>
+    }
+
+    <EditForm Model="input" OnValidSubmit="SendAsync" class="composer">
+        <InputText @bind-Value="input.Message" placeholder="Например: создай скважину на кусте 12..." disabled="@busy" />
+        <button class="primary" type="submit" disabled="@busy || string.IsNullOrWhiteSpace(input.Message)">Отправить</button>
+    </EditForm>
+    @if (!string.IsNullOrWhiteSpace(error))
+    {
+        <div class="error">@error</div>
+    }
+</section>
+
+@code {
+    private readonly ChatInput input = new();
+    private readonly List<UiMessage> messages = [];
+    private readonly string conversationId = Guid.NewGuid().ToString("N");
+    private AgentTurnResult? pending;
+    private bool busy;
+    private bool connected;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await Hub.PingAsync(CancellationToken.None);
+            connected = true;
+        }
+        catch
+        {
+            connected = false;
+        }
+    }
+
+    private async Task SendAsync()
+    {
+        var message = input.Message.Trim();
+        if (message.Length == 0) return;
+        input.Message = string.Empty;
+        messages.Add(new UiMessage("user", "Вы", message));
+        await InvokeAsync(StateHasChanged);
+        busy = true;
+        error = null;
+        try
+        {
+            var result = await Hub.SendMessageAsync(conversationId, message);
+            connected = true;
+            ApplyResult(result);
+        }
+        catch (Exception exception)
+        {
+            connected = false;
+            try
+            {
+                var fallback = await Fallback.ReplyAsync(message, CancellationToken.None);
+                messages.Add(new UiMessage("assistant", "Резервный агент", fallback));
+            }
+            catch
+            {
+                error = $"Agent Service недоступен: {exception.Message}";
+            }
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private async Task ConfirmAsync()
+    {
+        busy = true;
+        try { ApplyResult(await Hub.ConfirmAsync(conversationId)); }
+        catch (Exception exception) { error = exception.Message; }
+        finally { busy = false; }
+    }
+
+    private async Task RejectAsync()
+    {
+        busy = true;
+        try { ApplyResult(await Hub.RejectAsync(conversationId)); }
+        catch (Exception exception) { error = exception.Message; }
+        finally { busy = false; }
+    }
+
+    private void ApplyResult(AgentTurnResult result)
+    {
+        pending = result.Status == "confirmation_required" ? result : null;
+        if (!string.IsNullOrWhiteSpace(result.Message))
+            messages.Add(new UiMessage("assistant", "OilCaseX Agent", result.Message));
+        if (result.Warnings.Count > 0)
+            messages.Add(new UiMessage("warning", "Система", string.Join(" ", result.Warnings)));
+    }
+
+    private sealed class ChatInput { public string Message { get; set; } = string.Empty; }
+    private sealed record UiMessage(string Role, string RoleLabel, string Text);
+}

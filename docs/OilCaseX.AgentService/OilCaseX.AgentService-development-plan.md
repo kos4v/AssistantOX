@@ -14,7 +14,17 @@ Agent Service работает только через MCP. В нём не до�
 ссылок на OilCaseX Domain/Services, product DB connection string или прямых HTTP-вызовов
 OilCaseX.
 
+## UI-вертикаль MVP
+
+Добавлен отдельный `OilCaseX.Agent.Ui` на Blazor Web App с интерактивным серверным
+рендерингом. UI подключается к защищённому `AgentChatHub` по SignalR и вызывает тот же
+`AgentOrchestrator`, поэтому preview/confirmation и allow-list не дублируются на клиенте.
+`ChatClientAgent` используется только в безопасном fallback без MCP tools, когда Hub или
+AgentService недоступны.
+
 ## Этап 0. Зафиксировать границы и контракты
+
+**Статус: завершён.**
 
 ### Задачи
 
@@ -44,6 +54,9 @@ OilCaseX.
 
 ## Этап 1. Создать solution и ASP.NET Core host
 
+**Статус: завершён.** Host scaffold расширен MVP runtime для chat, vLLM и MCP;
+production hardening выполняется на этапах 8–10.
+
 ### Задачи
 
 - создать проекты `Api`, `Application`, `Domain`, `Infrastructure`;
@@ -72,6 +85,9 @@ OilCaseX.
 
 ## Этап 2. Подключить vLLM/Gemma 4
 
+**Статус: MVP завершён.** Реализован OpenAI-compatible клиент на базе `OpenAIClient`/`IChatClient`;
+streaming, readiness probe и fake vLLM остаются production hardening.
+
 ### Задачи
 
 - определить `IAgentModelClient`;
@@ -98,6 +114,10 @@ OilCaseX.
 - model revision и latency присутствуют в trace.
 
 ## Этап 3. Подключить завершённый MCP Server
+
+**Статус: MVP завершён.** Реализован SDK-клиент `McpClient` через Streamable HTTP,
+передача Authorization и локальная фильтрация tools. Проверка каталога на startup и
+contract drift остаются отдельными hardening-задачами.
 
 ### Задачи
 
@@ -126,6 +146,10 @@ OilCaseX.
 - JWT отсутствует в prompt, conversation history и tool arguments.
 
 ## Этап 4. Реализовать read-only agent loop
+
+**Статус: MVP завершён.** Реализован bounded loop с allow-list, ограничениями шагов и
+MCP-вызовов, сохранением observations и graceful degradation при недоступности LLM/MCP.
+SSE/NDJSON и detection повторяющихся вызовов запланированы после MVP.
 
 ### Задачи
 
@@ -157,6 +181,10 @@ OilCaseX.
 
 ## Этап 5. Добавить conversation state и clarification
 
+**Статус: MVP завершён на in-memory storage.** Состояние привязано к пользователю и
+команде, контекст ограничен последними сообщениями. Distributed lock, TTL/cleanup,
+summary и специализированная clarification-модель требуют production storage.
+
 ### Задачи
 
 - реализовать conversation/message persistence;
@@ -180,6 +208,9 @@ OilCaseX.
 
 ## Этап 6. Реализовать создание draft, prepare и preview
 
+**Статус: MVP завершён.** Agent Service разрешает только read tools и
+`prepare_create_borehole`, сохраняет pending confirmation и возвращает фактический preview.
+
 ### Задачи
 
 - определить `CreateBoreholeDraft`;
@@ -201,6 +232,9 @@ OilCaseX.
 - без явного подтверждения выполнено 0 write operations.
 
 ## Этап 7. Реализовать explicit confirmation и execute
+
+**Статус: MVP завершён.** Добавлены confirm/reject endpoints; execute вызывается только
+из отдельного confirm-запроса с сохранённым `confirmationId`, вне свободного LLM loop.
 
 ### Задачи
 

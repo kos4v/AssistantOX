@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Agents.AI.Foundry" Version="1.17.0-preview.260804.1" />
+    <ProjectReference Include="..\OilCaseX.Agent.Application\OilCaseX.Agent.Application.csproj" />
+  </ItemGroup>
+</Project>

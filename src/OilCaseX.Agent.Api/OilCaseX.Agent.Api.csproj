@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <UserSecretsId>OilCaseX.Agent.Api</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
+    <ProjectReference Include="..\OilCaseX.Agent.Application\OilCaseX.Agent.Application.csproj" />
+    <ProjectReference Include="..\OilCaseX.Agent.Infrastructure\OilCaseX.Agent.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

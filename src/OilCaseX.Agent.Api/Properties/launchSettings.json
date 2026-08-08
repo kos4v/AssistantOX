@@ -1,12 +1,12 @@
 {
   "profiles": {
-    "OilCaseX.McpServer": {
+    "OilCaseX.Agent.Api": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:5088;http://localhost:5089"
+      "applicationUrl": "https://localhost:52224;http://localhost:52225"
     }
   }
 }
