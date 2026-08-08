@@ -17,6 +17,12 @@ namespace OilCaseX.McpServer.Mcp;
 /// </summary>
 public sealed class OilCaseXGenericTools : IEnumerable<McpServerTool>
 {
+    private static readonly JsonSerializerOptions StrictJsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        PropertyNameCaseInsensitive = true,
+        UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow
+    };
+
     private static readonly MethodInfo InvokeMethod =
         typeof(GenericApiToolTarget).GetMethod(nameof(GenericApiToolTarget.InvokeAsync))!;
 
@@ -263,6 +269,17 @@ internal sealed class GenericApiToolTarget(ApiToolDescriptor descriptor)
         CancellationToken cancellationToken)
     {
         var arguments = context.Params.Arguments ?? new Dictionary<string, JsonElement>();
+        var parameterNames = descriptor.Method.GetParameters()
+            .Where(parameter => parameter.ParameterType != typeof(CancellationToken) && parameter.Name is not null)
+            .Select(parameter => parameter.Name!)
+            .ToHashSet(StringComparer.Ordinal);
+        var unknownArgument = arguments.Keys.FirstOrDefault(name => !parameterNames.Contains(name));
+        if (unknownArgument is not null)
+        {
+            return ToolResponse<object?>.Failure(
+                new ToolError("invalid_input", $"Unknown argument '{unknownArgument}'.", false));
+        }
+
         var values = new List<object?>();
         foreach (var parameter in descriptor.Method.GetParameters())
         {
@@ -279,7 +296,16 @@ internal sealed class GenericApiToolTarget(ApiToolDescriptor descriptor)
                     new ToolError("invalid_input", $"Missing required argument '{parameter.Name}'.", false));
             }
 
-            var converted = value.Deserialize(parameter.ParameterType);
+            object? converted;
+            try
+            {
+                converted = value.Deserialize(parameter.ParameterType, StrictJsonOptions);
+            }
+            catch (JsonException)
+            {
+                return ToolResponse<object?>.Failure(
+                    new ToolError("invalid_input", $"Argument '{parameter.Name}' contains an unknown or invalid JSON property.", false));
+            }
             if (converted is null)
             {
                 return ToolResponse<object?>.Failure(
@@ -300,7 +326,8 @@ internal sealed class GenericApiToolTarget(ApiToolDescriptor descriptor)
                 var decorator = new ConfirmationToolDecorator(
                     scope.ServiceProvider.GetRequiredService<IConfirmationStore>(),
                     scope.ServiceProvider.GetRequiredService<DelegatedRequestContext>(),
-                    scope.ServiceProvider.GetRequiredService<IAuditSink>());
+                    scope.ServiceProvider.GetRequiredService<IAuditSink>(),
+                    scope.ServiceProvider.GetRequiredService<ApiClient.IdempotencyKeyContext>());
                 return decorator.Prepare(descriptor, result, values.ToArray());
             }
             return ToolResponse<object?>.Success(descriptor.Project(result));

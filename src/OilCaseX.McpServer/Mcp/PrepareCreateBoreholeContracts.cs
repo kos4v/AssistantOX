@@ -29,6 +29,8 @@ public interface IConfirmationStore
         BoreholePurchasePreview preview);
 
     bool TryGet(string confirmationId, out ConfirmationRecord? record);
+
+    bool TryConsume(string confirmationId, out ConfirmationRecord? record);
 }
 
 public sealed class InMemoryConfirmationStore(IOptions<McpServerOptions> options) : IConfirmationStore
@@ -72,6 +74,23 @@ public sealed class InMemoryConfirmationStore(IOptions<McpServerOptions> options
         }
 
         records.TryRemove(confirmationId, out _);
+        record = null;
+        return false;
+    }
+
+    public bool TryConsume(string confirmationId, out ConfirmationRecord? record)
+    {
+        if (!records.TryRemove(confirmationId, out record))
+        {
+            record = null;
+            return false;
+        }
+
+        if (record.ExpiresAtUtc > DateTimeOffset.UtcNow)
+        {
+            return true;
+        }
+
         record = null;
         return false;
     }

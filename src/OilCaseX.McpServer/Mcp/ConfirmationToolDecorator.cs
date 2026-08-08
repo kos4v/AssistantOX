@@ -1,4 +1,7 @@
 using OilCaseX.McpServer.Mcp.Dtos;
+using OilCaseX.McpServer.ApiClient;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace OilCaseX.McpServer.Mcp;
 
@@ -6,7 +9,8 @@ namespace OilCaseX.McpServer.Mcp;
 public sealed class ConfirmationToolDecorator(
     IConfirmationStore confirmationStore,
     DelegatedRequestContext requestContext,
-    IAuditSink auditSink)
+    IAuditSink auditSink,
+    IdempotencyKeyContext idempotencyKeyContext)
 {
     public ToolResponse<object?> Prepare(ApiToolDescriptor descriptor, object? result, object?[] arguments)
     {
@@ -29,5 +33,79 @@ public sealed class ConfirmationToolDecorator(
         var confirmation = confirmationStore.Create(ownerKey, resourceScope, descriptor.ToolName, canonicalPayload, payloadHash, preview);
         auditSink.Record(new AuditEvent("confirmation_prepare", "prepared", descriptor.ToolName, ownerKey, resourceScope, payloadHash, confirmation.ConfirmationId, null, DateTimeOffset.UtcNow));
         return ToolResponse<object?>.Success(new PrepareCreateBoreholeResult(confirmation.ConfirmationId, confirmation.ExpiresAtUtc, payloadHash, preview));
+    }
+
+    public async Task<ToolResponse<T>> ExecuteAsync<T>(
+        string confirmationId,
+        string expectedToolName,
+        Func<ConfirmationRecord, CancellationToken, Task> preflight,
+        Func<ConfirmationRecord, string, CancellationToken, Task<T>> execute,
+        CancellationToken cancellationToken)
+    {
+        var ownerKey = requestContext.GetOwnerKey();
+        if (!confirmationStore.TryGet(confirmationId, out var candidate) || candidate is null)
+        {
+            return Failure<T>(ownerKey, "confirmation_invalid", "Confirmation is missing or expired.", confirmationId);
+        }
+
+        if (!string.Equals(candidate.OwnerKey, ownerKey, StringComparison.Ordinal))
+        {
+            return Failure<T>(ownerKey, "forbidden", "Confirmation belongs to another caller.", confirmationId);
+        }
+
+        if (!string.Equals(candidate.ToolName, expectedToolName, StringComparison.Ordinal))
+        {
+            return Failure<T>(ownerKey, "confirmation_invalid", "Confirmation is not valid for this operation.", confirmationId);
+        }
+
+        try
+        {
+            await preflight(candidate, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            var error = exception is OilCaseXPreflightException preflightException
+                ? new ToolError(preflightException.Code, preflightException.Message, false)
+                : OilCaseXErrorMapper.Map(exception);
+            auditSink.Record(new AuditEvent("confirmation_execute", "preflight_failed", expectedToolName, ownerKey, candidate.ResourceScope, candidate.PayloadHash, confirmationId, error.Code, DateTimeOffset.UtcNow));
+            return ToolResponse<T>.Failure(error);
+        }
+
+        if (!confirmationStore.TryConsume(confirmationId, out var confirmation) || confirmation is null)
+        {
+            return Failure<T>(ownerKey, "confirmation_replayed", "Confirmation has already been consumed or expired.", confirmationId);
+        }
+
+        var idempotencyKey = CreateIdempotencyKey(ownerKey, confirmation.PayloadHash, expectedToolName);
+        var previousKey = idempotencyKeyContext.CurrentKey;
+        idempotencyKeyContext.CurrentKey = idempotencyKey;
+        try
+        {
+            var result = await execute(confirmation, idempotencyKey, cancellationToken);
+            auditSink.Record(new AuditEvent("confirmation_execute", "success", expectedToolName, ownerKey, confirmation.ResourceScope, confirmation.PayloadHash, confirmationId, null, DateTimeOffset.UtcNow));
+            return ToolResponse<T>.Success(result);
+        }
+        catch (Exception exception)
+        {
+            var error = OilCaseXErrorMapper.Map(exception);
+            auditSink.Record(new AuditEvent("confirmation_execute", "unknown", expectedToolName, ownerKey, confirmation.ResourceScope, confirmation.PayloadHash, confirmationId, error.Code, DateTimeOffset.UtcNow));
+            return ToolResponse<T>.Failure(error with { Retryable = false });
+        }
+        finally
+        {
+            idempotencyKeyContext.CurrentKey = previousKey;
+        }
+    }
+
+    private static string CreateIdempotencyKey(string ownerKey, string payloadHash, string toolName)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes($"{toolName}|{ownerKey}|{payloadHash}"));
+        return $"mcp_{Convert.ToHexString(bytes).ToLowerInvariant()}";
+    }
+
+    private ToolResponse<T> Failure<T>(string ownerKey, string code, string message, string confirmationId)
+    {
+        auditSink.Record(new AuditEvent("confirmation_execute", "rejected", "confirmation", ownerKey, "unknown", null, confirmationId, code, DateTimeOffset.UtcNow));
+        return ToolResponse<T>.Failure(new ToolError(code, message, false));
     }
 }

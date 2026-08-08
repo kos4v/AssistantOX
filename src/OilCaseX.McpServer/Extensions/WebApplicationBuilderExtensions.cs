@@ -48,6 +48,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddSingleton<IConfirmationStore, InMemoryConfirmationStore>();
         builder.Services.AddSingleton<IAuditSink, LoggingAuditSink>();
+        builder.Services.AddScoped<IdempotencyKeyContext>();
         builder.Services.AddScoped<DelegatedRequestContext>();
 
         return builder;
@@ -65,12 +66,14 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddTransient<CorrelationPropagationHandler>();
         builder.Services.AddTransient<ResponseSizeGuardHandler>();
         builder.Services.AddTransient<SafeGetResilienceHandler>();
+        builder.Services.AddTransient<IdempotencyKeyHandler>();
 
         builder.Services.AddHttpClient<OilCaseXApiClientGenerated>(ConfigureOilCaseXHttpClient)
             .AddHttpMessageHandler<DelegatedJwtHandler>()
             .AddHttpMessageHandler<CorrelationPropagationHandler>()
             .AddHttpMessageHandler<ResponseSizeGuardHandler>()
-            .AddHttpMessageHandler<SafeGetResilienceHandler>();
+            .AddHttpMessageHandler<SafeGetResilienceHandler>()
+            .AddHttpMessageHandler<IdempotencyKeyHandler>();
         builder.Services.AddScoped<IOilCaseXApiClientGenerated>(
             services => services.GetRequiredService<OilCaseXApiClientGenerated>());
 
@@ -114,6 +117,7 @@ public static class WebApplicationBuilderExtensions
             })
             .WithHttpTransport(options => options.Stateless = true)
             .WithTools<DiagnosticTools>()
+            .WithTools<ExecuteCreateBoreholeTools>()
             .WithTools(new OilCaseXGenericTools())
             ;
 

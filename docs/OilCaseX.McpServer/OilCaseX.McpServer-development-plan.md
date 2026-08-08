@@ -250,6 +250,11 @@ allow-list и non-destructive filters, после чего generic executor вы
 
 ## Этап 6. Реализовать execute и idempotency
 
+**Статус: завершён для MVP-сценария создания скважины.** Реализованы execute,
+повторный preflight, одноразовое confirmation, API-level idempotency, cleanup,
+reconciliation и audit. Durable/shared confirmation storage и полноценный status
+reconciliation вынесены в этап 9.
+
 ### Задачи MCP
 
 - реализовать `execute_create_borehole`;
@@ -278,6 +283,9 @@ allow-list и non-destructive filters, после чего generic executor вы
 - финальный MCP result основан на API response/reconciliation.
 
 ## Этап 7. Security hardening
+
+**Статус: начат.** Первый шаг — строгая валидация входных JSON-аргументов и
+регрессионная проверка MCP allow-list.
 
 ### Задачи
 

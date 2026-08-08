@@ -2,7 +2,7 @@
 
 Отдельный MCP gateway над существующим OilCaseX REST API.
 
-Текущий статус: этапы 0–5 завершены локально. Этап 1 реализован как contract pipeline — raw и
+Текущий статус: этап 6 реализован локально для сценария создания скважины. Этап 1 реализован как contract pipeline — raw и
 curated OpenAPI snapshots, operation mapping, typed-client generation и compatibility
 checks. Этапы 2–3 добавляют запускаемый ASP.NET Core MCP gateway со Streamable HTTP,
 health/readiness, configuration validation, structured logging, OpenTelemetry,
@@ -60,7 +60,7 @@ Invoke-RestMethod http://127.0.0.1:5089/health/ready
 
 MCP Streamable HTTP endpoint: `http://127.0.0.1:5089/mcp`.
 Клиент после `initialize` получает `mcp_server_ping`, `list_wellpads`, `get_wellpad`,
-`get_borehole` и `prepare_create_borehole` через `tools/list`.
+`get_borehole`, `prepare_create_borehole` и `execute_create_borehole` через `tools/list`.
 Read tools и prepare передают Bearer JWT из входящего MCP
 запроса в OilCaseX API, если он присутствует.
 
@@ -87,8 +87,10 @@ docker build -f src/OilCaseX.McpServer/Dockerfile -t oilcasex-mcpserver .
 dotnet test .\src\OilCaseX.McpServer.Tests\OilCaseX.McpServer.Tests.csproj --configuration Release
 ```
 
-## Следующий этап
+## Ограничения текущей реализации
 
-Следующий блокер — этап 6: durable confirmation, повторный preflight, idempotency и
-execute. Текущий confirmation store in-memory и очищается при перезапуске MCP Server;
-`prepare_create_borehole` не создаёт продуктовые данные.
+`execute_create_borehole` повторяет API preflight, атомарно потребляет in-memory
+confirmation и передаёт стабильный `Idempotency-Key` в OilCaseX API. После успешной
+записи выполняется reconciliation через `get_borehole`. Confirmation store пока
+in-memory и очищается при перезапуске MCP Server; durable/shared storage относится к
+этапу 9.

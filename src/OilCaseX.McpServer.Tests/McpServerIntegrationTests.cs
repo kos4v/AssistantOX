@@ -53,6 +53,20 @@ public sealed class McpServerIntegrationTests : IClassFixture<WebApplicationFact
     }
 
     [Fact]
+    public async Task GeneratedTool_RejectsUnknownArguments()
+    {
+        await InitializeAsync();
+        var response = await SendMcpAsync(
+            "tools/call",
+            12,
+            "{\"name\":\"get_wellpad\",\"arguments\":{\"wellpadId\":42,\"unexpected\":true}}");
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("invalid_input", body);
+    }
+
+    [Fact]
     public async Task LiveHealth_IsHealthy()
     {
         var response = await client.GetAsync("/health/live");
@@ -73,6 +87,7 @@ public sealed class McpServerIntegrationTests : IClassFixture<WebApplicationFact
         Assert.Contains("get_wellpad", body);
         Assert.Contains("get_borehole", body);
         Assert.Contains("prepare_create_borehole", body);
+        Assert.Contains("execute_create_borehole", body);
         Assert.Contains("\"readOnlyHint\":true", body);
     }
 
