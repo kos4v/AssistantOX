@@ -16,8 +16,7 @@ public sealed class InMemoryConversationStore : IConversationStore
             conversationId,
             _ => new ConversationState(conversationId, context.UserId, context.TeamId, []));
 
-        if (!string.Equals(state.UserId, context.UserId, StringComparison.Ordinal)
-            || !string.Equals(state.TeamId, context.TeamId, StringComparison.Ordinal))
+        if (!string.Equals(state.UserId, context.UserId, StringComparison.Ordinal) || !string.Equals(state.TeamId, context.TeamId, StringComparison.Ordinal))
         {
             throw new UnauthorizedAccessException("Conversation belongs to another user or team.");
         }

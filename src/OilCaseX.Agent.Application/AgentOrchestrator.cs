@@ -70,7 +70,7 @@ public sealed class AgentOrchestrator(
 
             foreach (var toolCall in completion.ToolCalls)
             {
-                if (++toolCalls > runtimeOptions.MaxMcpCallsPerTurn || !tools.Any(tool => tool.Name == toolCall.Name))
+                if (++toolCalls > runtimeOptions.MaxMcpCallsPerTurn || tools.All(tool => tool.Name != toolCall.Name))
                 {
                     return new AgentTurnResult(conversationId, "policy_blocked", "Запрошенная операция недоступна.", null, null, ["Tool policy blocked the requested operation."]);
                 }
@@ -156,7 +156,7 @@ public sealed class AgentOrchestrator(
     private static bool TryReadConfirmation(ToolObservation observation, out PendingConfirmation confirmation)
     {
         confirmation = null!;
-        if (observation.Data is not JsonElement data || data.ValueKind != JsonValueKind.Object)
+        if (observation.Data is not { ValueKind: JsonValueKind.Object } data)
         {
             return false;
         }
