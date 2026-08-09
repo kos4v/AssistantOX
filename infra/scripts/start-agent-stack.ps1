@@ -3,7 +3,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$repoRoot = Split-Path -Parent $PSScriptRoot
+$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $projects = @()
 
 function Start-Project {
@@ -40,9 +40,9 @@ try {
     }
     Start-Sleep -Seconds 2
 
-    $ui = Start-Project 'OilCaseX.Agent.Ui' 'src/OilCaseX.Agent.Ui/OilCaseX.Agent.Ui.csproj' 'http://localhost:52227' @{
-        'AgentUi__HubUrl' = 'http://localhost:52225/hubs/agent'
-    }
+    # $ui = Start-Project 'OilCaseX.Agent.Ui' 'src/OilCaseX.Agent.Ui/OilCaseX.Agent.Ui.csproj' 'http://localhost:52227' @{
+    #     'AgentUi__HubUrl' = 'http://localhost:52225/hubs/agent'
+    # }
 
     Write-Host ''
     Write-Host 'OilCaseX local stack is running:'

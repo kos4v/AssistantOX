@@ -1,0 +1,87 @@
+name: oilcasex-agent
+
+services:
+  mcp:
+    image: ${MCP_IMAGE:-oilcasex/mcp-server:local}
+    build:
+      context: ../..
+      dockerfile: infra/docker/OilCaseX.McpServer.Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:8080
+      McpServer__OilCaseXBaseUrl: ${OILCASEX_BASE_URL:-https://x.stg.oilcase.ru}
+      McpServer__OilCaseXHealthPath: ${OILCASEX_HEALTH_PATH:-/swagger/v1/swagger.json}
+      McpServer__McpPath: /mcp
+      McpServer__OilCaseXTimeoutSeconds: ${OILCASEX_TIMEOUT_SECONDS:-15}
+      McpServer__ConfirmationTtlSeconds: ${CONFIRMATION_TTL_SECONDS:-300}
+    ports:
+      - "${MCP_PORT:-5089}:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  agent-api:
+    image: ${AGENT_API_IMAGE:-oilcasex/agent-api:local}
+    build:
+      context: ../..
+      dockerfile: infra/docker/OilCaseX.Agent.Api.Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:8080
+      AgentService__McpEndpoint: http://mcp:8080/mcp
+      AgentService__VllmBaseUrl: ${VLLM_BASE_URL:-http://host.docker.internal:8000/v1}
+      AgentService__VllmApiKey: ${VLLM_API_KEY:-lm-studio}
+      AgentService__Model: ${VLLM_MODEL:-prism-ml/bonsai-27b}
+      AgentService__RequestTimeoutSeconds: ${AGENT_REQUEST_TIMEOUT_SECONDS:-30}
+      AgentService__MaxAgentSteps: ${AGENT_MAX_STEPS:-6}
+      AgentService__MaxMcpCallsPerTurn: ${AGENT_MAX_MCP_CALLS:-4}
+      Authentication__Authority: ${AUTHORITY:-https://identity.invalid}
+      Authentication__Audience: ${AUTHENTICATION_AUDIENCE:-oilcasex-agent}
+      Authentication__RequireHttpsMetadata: ${AUTHENTICATION_REQUIRE_HTTPS_METADATA:-true}
+      Authentication__AllowDevelopmentAnonymous: "false"
+    ports:
+      - "${AGENT_API_PORT:-52225}:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      mcp:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+
+  agent-ui:
+    image: ${AGENT_UI_IMAGE:-oilcasex/agent-ui:local}
+    build:
+      context: ../..
+      dockerfile: infra/docker/OilCaseX.Agent.Ui.Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:8080
+      AgentUi__HubUrl: http://agent-api:8080/hubs/agent
+      AgentUi__AccessToken: ${AGENT_UI_ACCESS_TOKEN:-}
+      AgentUi__VllmBaseUrl: ${VLLM_BASE_URL:-http://host.docker.internal:8000/v1}
+      AgentUi__Model: ${VLLM_MODEL:-prism-ml/bonsai-27b}
+      AgentUi__ApiKey: ${VLLM_API_KEY:-lm-studio}
+    ports:
+      - "${AGENT_UI_PORT:-52227}:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      agent-api:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s

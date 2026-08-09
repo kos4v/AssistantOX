@@ -1,0 +1,9 @@
+services:
+  agent-api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Authentication__AllowDevelopmentAnonymous: "true"
+
+  agent-ui:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development

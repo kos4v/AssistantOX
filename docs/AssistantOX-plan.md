@@ -169,7 +169,6 @@ AI/AssistantOX/
   PLAN.md
   OilCaseX.Agent.sln
   Directory.Build.props
-  .env.example
   src/
     OilCaseX.Agent.Api/
     OilCaseX.Agent.Application/
@@ -197,7 +196,7 @@ AI/AssistantOX/
       ApiClient/
       Security/
       Observability/
-    OilCaseX.McpServer.Tests/
+    tests/OilCaseX.McpServer.Tests/
   model-serving/
     vllm/
       compose.gpu.yml
@@ -218,11 +217,12 @@ AI/AssistantOX/
     eval-methodology.md
     runbook.md
   infra/
-    docker-compose.yml
+    compose/
+    docker/
+    scripts/
     otel-collector.yml
     prometheus.yml
     grafana/
-  scripts/
 ```
 
 ## 7. План реализации

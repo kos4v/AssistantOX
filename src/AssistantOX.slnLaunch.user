@@ -1,0 +1,19 @@
+[
+  {
+    "Name": "API+MCP+UII",
+    "Projects": [
+      {
+        "Path": "OilCaseX.Agent.Api\\OilCaseX.Agent.Api.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "OilCaseX.Agent.Ui\\OilCaseX.Agent.Ui.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "OilCaseX.McpServer\\OilCaseX.McpServer.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

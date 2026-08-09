@@ -11,29 +11,26 @@ public sealed class AgentChatHub(AgentOrchestrator orchestrator) : Hub
 
     public Task<AgentTurnResult> SendMessage(
         string conversationId,
-        string message,
-        CancellationToken cancellationToken)
+        string message)
         => orchestrator.ProcessAsync(
             conversationId,
             message,
             CreateContext(),
-            cancellationToken);
+            Context.ConnectionAborted);
 
     public Task<AgentTurnResult> Confirm(
-        string conversationId,
-        CancellationToken cancellationToken)
+        string conversationId)
         => orchestrator.ConfirmAsync(
             conversationId,
             CreateContext(),
-            cancellationToken);
+            Context.ConnectionAborted);
 
     public Task<AgentTurnResult> Reject(
-        string conversationId,
-        CancellationToken cancellationToken)
+        string conversationId)
         => orchestrator.RejectAsync(
             conversationId,
             CreateContext(),
-            cancellationToken);
+            Context.ConnectionAborted);
 
     private AgentRequestContext CreateContext()
     {

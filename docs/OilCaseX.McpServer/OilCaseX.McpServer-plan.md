@@ -516,7 +516,7 @@ OilCaseX.McpServer/
   Health/
     OilCaseXApiHealthCheck.cs
 
-OilCaseX.McpServer.Tests/
+tests/OilCaseX.McpServer.Tests/
   Unit/
   Integration/
   Contract/

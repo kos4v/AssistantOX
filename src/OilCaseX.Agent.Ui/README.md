@@ -12,3 +12,7 @@ Blazor Web App с интерактивным серверным рендерин
 
 `AgentChatClientFallback` использует `ChatClientAgent` из `first_agent`-стека только
 при недоступности Hub. У fallback нет MCP tools и он не может изменять OilCaseX.
+
+Для production `AgentUi:AccessToken` должен поступать из защищённого server-side
+secret или быть заменён на per-user OIDC/token exchange; пустой токен не даёт доступ
+к защищённому Hub.

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -92,7 +93,10 @@ public static class WebApplicationBuilderExtensions
     public static WebApplicationBuilder AddOilCaseXAgentApplicationServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddSingleton<AgentRuntimeReadiness>();
-        builder.Services.AddSignalR();
+        builder.Services.AddSignalR(options =>
+        {
+            options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+        });
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddSingleton<AgentRuntimeOptions>(services =>
         {

@@ -38,7 +38,7 @@
 
     <EditForm Model="input" OnValidSubmit="SendAsync" class="composer">
         <InputText @bind-Value="input.Message" placeholder="Например: создай скважину на кусте 12..." disabled="@busy" />
-        <button class="primary" type="submit" disabled="@busy || string.IsNullOrWhiteSpace(input.Message)">Отправить</button>
+        <button class="primary" type="submit" disabled="@(busy || string.IsNullOrWhiteSpace(input.Message))">Отправить</button>
     </EditForm>
     @if (!string.IsNullOrWhiteSpace(error))
     {

@@ -19,11 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../OilCaseX.McpServer/OilCaseX.McpServer.csproj" />
-    <None Include="../OilCaseX.McpServer/contracts/openapi/oilcasex.v1.mcp.json"
+    <ProjectReference Include="../../src/OilCaseX.McpServer/OilCaseX.McpServer.csproj" />
+    <None Include="../../src/OilCaseX.McpServer/contracts/openapi/oilcasex.v1.mcp.json"
           Link="contracts/openapi/oilcasex.v1.mcp.json"
           CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../OilCaseX.McpServer/contracts/schemas/prepare-create-borehole.schema.json"
+    <None Include="../../src/OilCaseX.McpServer/contracts/schemas/prepare-create-borehole.schema.json"
           Link="contracts/schemas/prepare-create-borehole.schema.json"
           CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

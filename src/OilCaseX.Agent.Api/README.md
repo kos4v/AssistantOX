@@ -25,6 +25,7 @@ Do not put a real API key in repository configuration or logs.
    the stored `confirmationId`.
 5. `POST /api/v1/conversations/{id}/reject` discards the pending operation.
 
-All endpoints require the configured JWT bearer authentication. Conversation state is
-currently in-memory for the MVP and must be replaced with distributed persistence before
-production deployment.
+All endpoints require the configured JWT bearer authentication in production. The
+Development environment enables a local-only `local-user` identity for the joint launch
+script. Conversation state is currently in-memory for the MVP and must be replaced with
+distributed persistence before production deployment.

@@ -1,41 +1,117 @@
-name: OilCaseX Agent Service CI
+name: OilCaseX Agent CI/CD
 
 on:
   pull_request:
     paths:
-      - 'src/OilCaseX.Agent.**/**'
-      - 'tests/OilCaseX.Agent.**/**'
+      - 'src/**'
+      - 'tests/**'
       - 'docs/OilCaseX.AgentService/**'
+      - 'infra/compose/**'
+      - 'infra/docker/**'
+      - '.dockerignore'
       - '.github/workflows/agent-ci-self-hosted.yml'
   push:
     branches: [main, master]
     paths:
-      - 'src/OilCaseX.Agent.**/**'
-      - 'tests/OilCaseX.Agent.**/**'
+      - 'src/**'
+      - 'tests/**'
+      - 'infra/compose/**'
+      - 'infra/docker/**'
+      - '.dockerignore'
       - '.github/workflows/agent-ci-self-hosted.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: oilcasex-agent-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  COMPOSE_PROJECT_NAME: oilcasex-agent
+
 jobs:
   validate:
-    name: Build and test Agent Service on W10534
+    name: Build, test and validate containers
     runs-on: [self-hosted, W10534]
-    defaults:
-      run:
-        working-directory: src
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
 
       - name: Restore
+        working-directory: src
         run: dotnet restore AssistantOX.slnx
 
       - name: Build
+        working-directory: src
         run: dotnet build AssistantOX.slnx --configuration Release --no-restore
 
       - name: Test
+        working-directory: src
         run: dotnet test AssistantOX.slnx --configuration Release --no-build --no-restore
 
-      - name: Build Agent container
-        working-directory: .
-        run: docker build --file src/OilCaseX.Agent.Api/Dockerfile --tag oilcasex-agent-ci:${{ github.sha }} .
+      - name: Validate compose file
+        run: docker compose -f infra/compose/docker-compose.yml config --quiet
+
+      - name: Build all service images
+        run: docker compose -f infra/compose/docker-compose.yml build --pull
+
+  deploy:
+    name: Deploy compose stack on W10534
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: validate
+    runs-on: [self-hosted, W10534]
+    environment: production
+    env:
+      ASPNETCORE_ENVIRONMENT: Production
+      OILCASEX_BASE_URL: ${{ vars.OILCASEX_BASE_URL || 'https://x.stg.oilcase.ru' }}
+      VLLM_BASE_URL: ${{ vars.VLLM_BASE_URL || 'http://host.docker.internal:8000/v1' }}
+      VLLM_MODEL: ${{ vars.VLLM_MODEL || 'prism-ml/bonsai-27b' }}
+      VLLM_API_KEY: ${{ secrets.VLLM_API_KEY }}
+      AUTHORITY: ${{ vars.AUTHORITY || 'https://identity.invalid' }}
+      AUTHENTICATION_AUDIENCE: ${{ vars.AUTHENTICATION_AUDIENCE || 'oilcasex-agent' }}
+      AGENT_UI_ACCESS_TOKEN: ${{ secrets.AGENT_UI_ACCESS_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start or update compose stack
+        run: docker compose -f infra/compose/docker-compose.yml up -d --build --remove-orphans
+
+      - name: Verify service health
+        shell: pwsh
+        run: |
+          $checks = @(
+            'http://localhost:5089/health/live',
+            'http://localhost:52225/health/live',
+            'http://localhost:52227/'
+          )
+          foreach ($uri in $checks) {
+            $healthy = $false
+            for ($attempt = 1; $attempt -le 20; $attempt++) {
+              try {
+                $response = Invoke-WebRequest -Uri $uri -UseBasicParsing -TimeoutSec 5
+                if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 400) {
+                  $healthy = $true
+                  break
+                }
+              } catch {
+                Start-Sleep -Seconds 3
+              }
+            }
+            if (-not $healthy) { throw "Health check failed: $uri" }
+          }
+
+      - name: Show compose status
+        if: always()
+        run: docker compose -f infra/compose/docker-compose.yml ps
+
+      - name: Show compose logs on failure
+        if: failure()
+        run: docker compose -f infra/compose/docker-compose.yml logs --tail=200

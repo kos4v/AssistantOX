@@ -81,13 +81,13 @@ Write tools дополнительно требуют роль из `McpServer:W
 Сборка контейнера выполняется из корня `AI/AssistantOX`:
 
 ```powershell
-docker build -f src/OilCaseX.McpServer/Dockerfile -t oilcasex-mcpserver .
+docker build -f infra/docker/OilCaseX.McpServer.Dockerfile -t oilcasex-mcpserver .
 ```
 
 Тесты:
 
 ```powershell
-dotnet test .\src\OilCaseX.McpServer.Tests\OilCaseX.McpServer.Tests.csproj --configuration Release
+dotnet test .\tests\OilCaseX.McpServer.Tests\OilCaseX.McpServer.Tests.csproj --configuration Release
 ```
 
 ## Ограничения текущей реализации

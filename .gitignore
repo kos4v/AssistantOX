@@ -1,3 +1,5 @@
 .vs
 bin
 obj
+.tmp/ui-publish/
+.tmp/ui-publish-check/

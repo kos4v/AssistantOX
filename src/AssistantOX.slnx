@@ -1,6 +1,5 @@
 <Solution>
   <Project Path="OilCaseX.McpServer.ContractCompile/OilCaseX.McpServer.ContractCompile.csproj" />
-  <Project Path="OilCaseX.McpServer.Tests/OilCaseX.McpServer.Tests.csproj" />
   <Project Path="OilCaseX.McpServer/OilCaseX.McpServer.csproj" />
   <Project Path="OilCaseX.Agent.Api/OilCaseX.Agent.Api.csproj" />
   <Project Path="OilCaseX.Agent.Application/OilCaseX.Agent.Application.csproj" />
@@ -8,6 +7,7 @@
   <Project Path="OilCaseX.Agent.Infrastructure/OilCaseX.Agent.Infrastructure.csproj" />
   <Project Path="OilCaseX.Agent.Ui/OilCaseX.Agent.Ui.csproj" />
   <Project Path="../tests/OilCaseX.Agent.UnitTests/OilCaseX.Agent.UnitTests.csproj" />
+  <Project Path="../tests/OilCaseX.McpServer.Tests/OilCaseX.McpServer.Tests.csproj" />
   <Project Path="../tests/OilCaseX.Agent.IntegrationTests/OilCaseX.Agent.IntegrationTests.csproj" />
   <Project Path="../tests/OilCaseX.Agent.ContractTests/OilCaseX.Agent.ContractTests.csproj" />
   <Project Path="../tests/OilCaseX.Agent.E2ETests/OilCaseX.Agent.E2ETests.csproj" />
